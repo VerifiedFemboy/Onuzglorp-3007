@@ -29,8 +29,12 @@ impl EventHandler for Handler {
                     commands::leaderboard::run(&ctx, &command).await.unwrap();
                     None
                 }
-                "calc" => {
-                    commands::calc::run(&ctx, &command).await.unwrap();
+                "calcscore" => {
+                    commands::calc_score::run(&ctx, &command).await.unwrap();
+                    None
+                }
+                "calcacc" => {
+                    commands::calc_acc::run(&ctx, &command).await.unwrap();
                     None
                 }
                 "profile" => {
@@ -64,9 +68,10 @@ impl EventHandler for Handler {
             &ctx.http,
             vec![
                 commands::help::register(),
+                commands::calc_score::register(),
+                commands::calc_acc::register(),
                 commands::leaderboard::register(),
                 commands::ping::register(),
-                commands::calc::register(),
                 commands::profile::register(),
                 commands::clear::register(),
             ],

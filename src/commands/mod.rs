@@ -1,4 +1,5 @@
-pub mod calc;
+pub mod calc_acc;
+pub mod calc_score;
 pub mod clear;
 pub mod help;
 pub mod leaderboard;

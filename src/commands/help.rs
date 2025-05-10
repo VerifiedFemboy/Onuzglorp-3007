@@ -8,8 +8,10 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
         .description("Commands available:")
         .field("/ping", "Check if the bot is alive", false)
         .field("/leaderboard", "Get the leaderboard", false)
-        .field("/calc", "Calculate your score", false)
+        .field("/calcscore", "Calculate your score", false)
+        .field("/calcacc", "Calculate your accuracy", false)
         .field("/profile", "Get your profile", false)
+        .field("/clear", "Get clear info", false)
         .color(0xFF69B4);
 
     interaction

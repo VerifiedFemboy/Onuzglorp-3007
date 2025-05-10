@@ -170,7 +170,7 @@ pub fn register() -> CreateCommand {
     .min_int_value(0)
     .required(false);
 
-    CreateCommand::new("calc")
+    CreateCommand::new("calcscore")
         .description("Calculate your score")
         .dm_permission(true)
         .default_member_permissions(serenity::all::Permissions::empty())
