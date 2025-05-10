@@ -1,4 +1,7 @@
-use super::{beatmap::Beatmap, difficulty::{convert_from_hex_to_rgb, Difficulty}};
+use super::{
+    difficulty::{Difficulty, convert_from_hex_to_rgb},
+    level::Level,
+};
 
 pub struct ClearInfo {
     pub is_worlds_first: bool,
@@ -14,11 +17,19 @@ pub struct ClearInfo {
     pub video_title: String,
     pub video_link: String,
     pub judgements: Judgements,
-    pub beatmap: Beatmap,
+    pub beatmap: Level,
     pub is_no_miss: bool,
 }
 
-pub struct Judgements(pub u64, pub u64, pub u64, pub u64, pub u64, pub u64, pub u64);
+pub struct Judgements(
+    pub u64,
+    pub u64,
+    pub u64,
+    pub u64,
+    pub u64,
+    pub u64,
+    pub u64,
+);
 
 pub async fn get_clear_info(
     id: &u64,
@@ -28,6 +39,10 @@ pub async fn get_clear_info(
         .expect("Failed to send the request");
 
     let json: serde_json::Value = response.json().await.expect("Failed to parse JSON");
+
+    if !json["error"].is_null() {
+        return Err("Clear not found".into());
+    }
 
     let is_worlds_first = json["isWorldsFirst"].as_bool().unwrap_or(false);
 
@@ -44,15 +59,10 @@ pub async fn get_clear_info(
         .unwrap_or("none")
         .to_string();
 
-    let player_avatar = json["player"]["pfp"]
-        .as_str()
-        .unwrap_or("none")
-        .to_string();
-
+    let player_avatar = json["player"]["pfp"].as_str().unwrap_or("none").to_string();
 
     let video_title = json["vidTitle"].as_str().unwrap_or("none").to_string();
     let video_link = json["videoLink"].as_str().unwrap_or("none").to_string();
-    
 
     let judgements = &json["judgements"];
 
@@ -69,12 +79,11 @@ pub async fn get_clear_info(
         judgements["lateDouble"].as_u64().unwrap_or(0),
     );
 
-    
     let is_no_miss = is_no_miss(&judgements);
 
     let beatmap = &json["level"];
 
-    let beatmap = Beatmap {
+    let beatmap = Level {
         id: beatmap["id"].as_u64().unwrap_or(0) as u32,
         title: beatmap["song"].as_str().unwrap_or("none").to_string(),
         artist: beatmap["artist"].as_str().unwrap_or("none").to_string(),
@@ -116,7 +125,6 @@ pub async fn get_clear_info(
 
     Ok(clear_info)
 }
-
 
 fn is_no_miss(judgement: &Judgements) -> bool {
     judgement.0 == 0

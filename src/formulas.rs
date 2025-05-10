@@ -11,7 +11,9 @@ pub fn acc_by_judgement(
         late_double,
     ): Judgements,
 ) -> f64 {
-    let judgement_count = (early_double + early_single + e_perfect + perfect + l_perfect + late_single + late_double) as f64;
+    let judgement_count =
+        (early_double + early_single + e_perfect + perfect + l_perfect + late_single + late_double)
+            as f64;
     (perfect as f64
         + (e_perfect as f64 + l_perfect as f64) * 0.75
         + (early_single as f64 + late_single as f64) * 0.4
@@ -38,7 +40,7 @@ fn speed_multiplier(speed: f64) -> f64 {
     };
 }
 
-fn score_v2(score: f64, misses: i32, tile_count: i32) -> f64 {
+fn score_v2(score: f64, misses: u32, tile_count: u32) -> f64 {
     let am = (misses as f64 - (tile_count as f64 * 10.0 / 315.0).floor() / 10.0).max(0.0);
 
     let k_one = ((am - 1.0) / 24.5).powf(0.7) * 0.2;
@@ -58,7 +60,7 @@ fn score_v2(score: f64, misses: i32, tile_count: i32) -> f64 {
         }
 }
 
-pub fn score_final(base_score: f64, x_acc: f64, tile_count: i32, misses: i32, speed: f64) -> f64 {
+pub fn score_final(base_score: f64, x_acc: f64, tile_count: u32, misses: u32, speed: f64) -> f64 {
     let score = base_score
         * x_acc_multiplier(x_acc)
         * speed_multiplier(speed)

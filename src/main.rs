@@ -13,7 +13,7 @@ use serenity::{
 mod commands;
 mod formulas;
 mod tuforums;
-
+mod utils;
 struct Handler;
 
 #[async_trait]

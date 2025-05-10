@@ -5,7 +5,7 @@ use serenity::all::{
     CreateEmbedFooter, CreateInteractionResponseMessage, EditInteractionResponse,
 };
 
-use crate::{formulas::score_final, tuforums::beatmap::get_beatmap};
+use crate::{formulas::score_final, tuforums::level::get_level};
 
 pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), serenity::Error> {
     let start_time = std::time::Instant::now();
@@ -20,35 +20,82 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
         .await
         .expect("Something went wrong while creating response");
 
-    let id = interaction.data.options[0].value.as_i64().unwrap_or(0) as u32;
-    let x_acc = interaction.data.options[1].value.as_f64().unwrap_or(0.);
-    let misses = interaction.data.options[2].value.as_i64().unwrap_or(0) as i32;
-    let tile_count = interaction.data.options[3].value.as_i64().unwrap_or(0) as i32;
+    let id = interaction
+        .data
+        .options
+        .iter()
+        .find(|option| option.name == "level_id")
+        .and_then(|option| option.value.as_i64())
+        .unwrap_or(0) as u32;
+
+    let x_acc = interaction
+        .data
+        .options
+        .iter()
+        .find(|option| option.name == "x_acc")
+        .and_then(|option| option.value.as_f64())
+        .unwrap_or(0.);
+
+    let misses = interaction
+        .data
+        .options
+        .iter()
+        .find(|option| option.name == "misses")
+        .and_then(|option| option.value.as_i64())
+        .unwrap_or(0) as u32;
+
+    let tile_count = interaction
+        .data
+        .options
+        .iter()
+        .find(|option| option.name == "tile_count")
+        .and_then(|option| option.value.as_i64())
+        .unwrap_or(0) as u32;
+
     let speed = interaction
         .data
         .options
-        .get(4)
+        .iter()
+        .find(|option| option.name == "speed")
         .and_then(|option| option.value.as_f64())
         .unwrap_or(1.);
+
     let ranked_position = interaction
         .data
         .options
-        .get(1)
+        .iter()
+        .find(|option| option.name == "ranked_position")
         .and_then(|option| option.value.as_i64())
         .unwrap_or(1) as f64;
 
-    let beatmap = &get_beatmap(id).await.expect("Failed to get map");
-    let base_score = if beatmap.score_base == 0. {
-        beatmap.difficulty.score_base
+    let level = match get_level(id).await {
+        Ok(map) => map,
+        Err(e) => {
+            interaction
+                .edit_response(
+                    ctx,
+                    EditInteractionResponse::new().content(format!(
+                        "Failed to get the level with id: {}.\n**Error: {}**",
+                        id, e
+                    )),
+                )
+                .await
+                .expect("Failed to edit the response");
+            return Ok(());
+        }
+    };
+
+    let base_score = if level.score_base == 0. {
+        level.difficulty.score_base
     } else {
-        beatmap.score_base
+        level.score_base
     };
 
     let score = score_final(base_score, x_acc, tile_count, misses, speed);
-    let ranked_score = if ranked_position == 20. {
+    let ranked_score = if ranked_position >= 20. {
         0.0
     } else {
-        score * 0.9f64.powf(ranked_position)
+        score * 0.9f64.powf(ranked_position - 1.)
     };
 
     let stop_time = std::time::Instant::now();
@@ -57,14 +104,14 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
     let embed = CreateEmbed::new()
     .title(format!(
         "{} - {} | ID: {}",
-        beatmap.artist, beatmap.title, beatmap.id
+        level.artist, level.title, level.id
     ))
-    .description(format!("*charted by {}*", beatmap.creator))
+    .description(format!("*charted by {}*", level.creator))
     .field("Using those informations", format!("``base score: {}`` | ``xAcc: {}``\n``tile Count: {}`` | ``misses: {}`` | ``speed: {}x``", base_score, x_acc, tile_count, misses, speed), false)
-    .thumbnail(beatmap.difficulty.icon.to_string())
+    .thumbnail(level.difficulty.icon.to_string())
     .field("Your score", format!("**{:.2}**", score), true)
-    .field("Your ranked score", format!("**{:.2}**", ranked_score), true)
-    .color(Color::from_rgb(beatmap.difficulty.color.0, beatmap.difficulty.color.1, beatmap.difficulty.color.2))
+    .field("Your ranked score", format!("**{:.2} (#{})**", ranked_score, ranked_position), true)
+    .color(Color::from_rgb(level.difficulty.color.0, level.difficulty.color.1, level.difficulty.color.2))
     .footer(CreateEmbedFooter::new(format!("Response time {} ms", elapsed_time.as_millis().to_string())));
 
     interaction
@@ -78,8 +125,8 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
 pub fn register() -> CreateCommand {
     let id = CreateCommandOption::new(
         serenity::all::CommandOptionType::Integer,
-        "beatmap_id",
-        "The id for beatmap you want to calculate",
+        "level_id",
+        "The id for level you want to calculate",
     )
     .required(true);
 
@@ -121,7 +168,6 @@ pub fn register() -> CreateCommand {
         "Your ranked position",
     )
     .min_int_value(0)
-    .max_int_value(20)
     .required(false);
 
     CreateCommand::new("calc")

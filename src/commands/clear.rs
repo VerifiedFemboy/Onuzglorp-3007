@@ -1,8 +1,13 @@
 use serenity::all::{
-    CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption, CreateEmbed, CreateEmbedAuthor, CreateInteractionResponse, CreateInteractionResponseMessage, EditInteractionResponse
+    CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
+    CreateEmbed, CreateEmbedAuthor, CreateInteractionResponse, CreateInteractionResponseMessage,
+    EditInteractionResponse,
 };
 
-use crate::{formulas::{acc_by_judgement, score_final}, tuforums::clear_info::{get_clear_info, Judgements}};
+use crate::{
+    formulas::{acc_by_judgement, score_final},
+    tuforums::clear_info::{Judgements, get_clear_info},
+};
 
 pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), serenity::Error> {
     let id = interaction.data.options[0].value.as_i64().unwrap_or(0) as u64;
@@ -74,30 +79,36 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
                 .thumbnail(clear.player_avatar)
                 .color(beatmap.difficulty.color);
 
-                if !is_no_miss {
-                    let base_score = if beatmap.score_base == 0. {
-                        beatmap.difficulty.score_base
-                    } else {
-                        beatmap.score_base
-                    };
+            if !is_no_miss {
+                let base_score = if beatmap.score_base == 0. {
+                    beatmap.difficulty.score_base
+                } else {
+                    beatmap.score_base
+                };
 
-                    let accuracy = acc_by_judgement(Judgements(0, clear.judgements.1, 
-                        clear.judgements.2,
-                        clear.judgements.3,
-                        clear.judgements.4,
-                        clear.judgements.5,
-                        clear.judgements.6,
-                        )) * 100.;
+                let accuracy = acc_by_judgement(Judgements(
+                    0,
+                    clear.judgements.1,
+                    clear.judgements.2,
+                    clear.judgements.3,
+                    clear.judgements.4,
+                    clear.judgements.5,
+                    clear.judgements.6,
+                )) * 100.;
 
-                        let score = score_final(base_score, accuracy, 1, 0, clear.speed);
+                let score = score_final(base_score, accuracy, 1, 0, clear.speed);
 
-                    embed = embed
-                        .field("**If nomiss**", "", false)
-                        .field("**Accuracy**", format!("{:.2}%", &accuracy), true)
-                        .field("**Score**", format!("{:.2}", score), true);
-                }
+                embed = embed
+                    .field("**If nomiss**", "", false)
+                    .field("**Accuracy**", format!("{:.2}%", &accuracy), true)
+                    .field("**Score**", format!("{:.2}", score), true);
+            }
 
-                embed = embed.field("", format!("[{}]({})",clear.video_title, clear.video_link), false);
+            embed = embed.field(
+                "",
+                format!("[{}]({})", clear.video_title, clear.video_link),
+                false,
+            );
 
             interaction
                 .edit_response(ctx, EditInteractionResponse::new().embed(embed))
@@ -129,7 +140,6 @@ pub fn register() -> CreateCommand {
         )
 }
 
-
 fn get_video_id(vido_link: &str) -> String {
     let mut video_id = String::new();
     if let Some(start) = vido_link.find("v=") {
@@ -143,5 +153,4 @@ fn get_video_id(vido_link: &str) -> String {
         video_id.truncate(end);
     }
     video_id
-    
 }

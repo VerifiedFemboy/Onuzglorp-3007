@@ -60,7 +60,9 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
             false,
         )
         .color(0xFF69B4)
-        .footer(CreateEmbedFooter::new(format!("Page {page} (buttons will be available soon)")));
+        .footer(CreateEmbedFooter::new(format!(
+            "Page {page} (buttons will be available soon)"
+        )));
 
     let lb_prev = CreateButton::new("lb_previous")
         .label("⬅️")
