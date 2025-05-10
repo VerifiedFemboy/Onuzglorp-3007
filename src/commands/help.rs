@@ -6,12 +6,13 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
     let embed = CreateEmbed::new()
         .title("Help")
         .description("Commands available:")
-        .field("/ping", "Check if the bot is alive", false)
-        .field("/leaderboard", "Get the leaderboard", false)
-        .field("/calcscore", "Calculate your score", false)
         .field("/calcacc", "Calculate your accuracy", false)
-        .field("/profile", "Get your profile", false)
+        .field("/calcscore", "Calculate your score", false)
         .field("/clear", "Get clear info", false)
+        .field("/leaderboard", "Get the leaderboard", false)
+        .field("/ping", "Check if the bot is alive", false)
+        .field("/profile", "Get your profile", false)
+        .field("/randomlvl", "Get a random level", false)
         .color(0xFF69B4);
 
     interaction

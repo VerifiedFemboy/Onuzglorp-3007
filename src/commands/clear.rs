@@ -7,6 +7,7 @@ use serenity::all::{
 use crate::{
     formulas::{acc_by_judgement, score_final},
     tuforums::clear_info::{Judgements, get_clear_info},
+    utils::get_video_id,
 };
 
 pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), serenity::Error> {
@@ -138,19 +139,4 @@ pub fn register() -> CreateCommand {
             CreateCommandOption::new(CommandOptionType::Integer, "clear_id", "Clear ID")
                 .required(true),
         )
-}
-
-fn get_video_id(vido_link: &str) -> String {
-    let mut video_id = String::new();
-    if let Some(start) = vido_link.find("v=") {
-        video_id = vido_link[start + 2..].to_string();
-    } else if let Some(start) = vido_link.find("youtu.be/") {
-        video_id = vido_link[start + 9..].to_string();
-    } else if let Some(start) = vido_link.find("/embed/") {
-        video_id = vido_link[start + 7..].to_string();
-    }
-    if let Some(end) = video_id.find('&') {
-        video_id.truncate(end);
-    }
-    video_id
 }

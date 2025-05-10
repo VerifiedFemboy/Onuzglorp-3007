@@ -103,6 +103,11 @@ pub async fn get_clear_info(
                 .max(0.),
         },
         score_base: beatmap["baseScore"].as_f64().unwrap_or(0.).max(0.),
+        clears: 0,
+        highest_acc: 0.,
+        first_clear: "".to_string(),
+        dl_link: "".to_string(),
+        vido_link: "".to_string(),
     };
 
     let clear_info = ClearInfo {

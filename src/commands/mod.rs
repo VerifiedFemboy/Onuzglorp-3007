@@ -5,3 +5,4 @@ pub mod help;
 pub mod leaderboard;
 pub mod ping;
 pub mod profile;
+pub mod random_lvl;

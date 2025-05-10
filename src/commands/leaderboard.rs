@@ -1,6 +1,6 @@
 use serenity::all::{
-    ButtonStyle, CommandInteraction, CommandOptionType, Context, CreateButton, CreateCommand,
-    CreateCommandOption, CreateEmbed, CreateEmbedFooter, CreateInteractionResponse,
+    ButtonStyle, CommandInteraction, CommandOptionType, Context, CreateActionRow, CreateButton,
+    CreateCommand, CreateCommandOption, CreateEmbed, CreateEmbedFooter, CreateInteractionResponse,
     CreateInteractionResponseMessage, EditInteractionResponse, Permissions,
 };
 
@@ -79,10 +79,10 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
             ctx,
             EditInteractionResponse::new()
                 .embed(embed)
-                .button(lb_prev)
-                .button(lb_next),
+                .components(vec![CreateActionRow::Buttons(vec![lb_prev, lb_next])]),
         )
         .await?;
+
     Ok(())
 }
 
@@ -97,24 +97,3 @@ pub fn register() -> CreateCommand {
                 .required(false),
         )
 }
-
-// pub struct LeaderboardHandler;
-
-// #[async_trait]
-// impl EventHandler for LeaderboardHandler {
-//     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
-//         match interaction {
-//             Interaction::Component(component_interaction) => {
-//                 match component_interaction.data.custom_id.as_str() {
-//                     "lb_next" => {
-//                         component_interaction.edit_response(
-//                             ctx,
-//                             EditInteractionResponse::new().content("balls")).await.unwrap();
-//                     },
-//                     _ => {}
-//                 }
-//             },
-//             _ => {},
-//         }
-//     }
-// }

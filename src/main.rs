@@ -49,6 +49,10 @@ impl EventHandler for Handler {
                     commands::help::run(&ctx, &command).await.unwrap();
                     None
                 }
+                "random_lvl" => {
+                    commands::random_lvl::run(&ctx, &command).await.unwrap();
+                    None
+                }
                 _ => Some("Unknown command".to_string()),
             };
 
@@ -74,6 +78,7 @@ impl EventHandler for Handler {
                 commands::ping::register(),
                 commands::profile::register(),
                 commands::clear::register(),
+                commands::random_lvl::register(),
             ],
         )
         .await;
