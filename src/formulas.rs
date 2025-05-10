@@ -1,18 +1,21 @@
-pub fn judgement_count(
-    early_double: f64,
-    early_single: f64,
-    e_perfect: f64,
-    perfect: f64,
-    l_perfect: f64,
-    late_single: f64,
-    late_double: f64,
+use crate::tuforums::clear_info::Judgements;
+
+pub fn acc_by_judgement(
+    Judgements(
+        early_double,
+        early_single,
+        e_perfect,
+        perfect,
+        l_perfect,
+        late_single,
+        late_double,
+    ): Judgements,
 ) -> f64 {
-    let judgement_count =
-        early_double + early_single + e_perfect + perfect + l_perfect + late_single + late_double;
-    (perfect
-        + (e_perfect + l_perfect) * 0.75
-        + (early_single + late_single) * 0.4
-        + (early_double + late_double) * 0.2)
+    let judgement_count = (early_double + early_single + e_perfect + perfect + l_perfect + late_single + late_double) as f64;
+    (perfect as f64
+        + (e_perfect as f64 + l_perfect as f64) * 0.75
+        + (early_single as f64 + late_single as f64) * 0.4
+        + (early_double as f64 + late_double as f64) * 0.2)
         / judgement_count
 }
 
