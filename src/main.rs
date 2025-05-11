@@ -1,6 +1,7 @@
 use std::vec;
 
 use commands::leaderboard::LeaderboardHandler;
+use database::Database;
 use dotenv::dotenv;
 use serenity::{
     Client,
@@ -15,6 +16,7 @@ mod commands;
 mod formulas;
 mod tuforums;
 mod utils;
+mod database;
 struct Handler;
 
 #[async_trait]
@@ -102,6 +104,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         dotenv::var("DISCORD_TOKEN").expect("Expected a token in the environment")
     };
+
+    let mongo_uri = dotenv::var("MONGO_URI").expect("Expected a mongo uri in the environment");
+
+    let database = Database::new(mongo_uri);
+
+    let db = database.connect().await.expect("Failed to connect to the database");
 
     let mut client = Client::builder(token_env, GatewayIntents::all())
         .event_handler(Handler)

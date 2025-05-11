@@ -50,7 +50,7 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
                 )
                 .field(
                     "Top Diff",
-                    format!(":{}:", profile.stats.top_diff.name),
+                    format!("**{}**", profile.stats.top_diff.name),
                     true,
                 )
                 .field(
