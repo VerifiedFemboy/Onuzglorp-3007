@@ -1,5 +1,6 @@
 use std::vec;
 
+use commands::leaderboard::LeaderboardHandler;
 use dotenv::dotenv;
 use serenity::{
     Client,
@@ -104,6 +105,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut client = Client::builder(token_env, GatewayIntents::all())
         .event_handler(Handler)
+        .event_handler(LeaderboardHandler)
         .activity(ActivityData::watching("TUForums"))
         .await?;
 
