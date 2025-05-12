@@ -4,7 +4,7 @@ pub struct Profile {
     pub name: String,
     pub username: String,
     pub avatar: String,
-    pub discord_id: String,
+    pub discord_id: Option<String>,
     pub stats: Stats,
 }
 
@@ -39,15 +39,7 @@ pub async fn get_profile(id: u64) -> Result<Profile, Box<dyn std::error::Error +
 
     let avatar = json["pfp"].as_str().unwrap_or("").to_string();
 
-    let discord_id = if let Some(id) = json["discordId"].as_str() {
-        if id.is_empty() {
-            "none".to_string()
-        } else {
-            format!("<@{id}>")
-        }
-    } else {
-        "Unknown".to_string()
-    };
+    let discord_id = json["discordId"].as_str().map(|id| id.to_string());
 
     let difficulty = &json["topDiff"];
 

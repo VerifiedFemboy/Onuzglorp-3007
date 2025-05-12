@@ -58,7 +58,18 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
                     format!("**{:.2}%**", profile.stats.avg_xacc * 100.),
                     true,
                 )
-                .field("Discord", format!("**{}**", profile.discord_id), true)
+                .field(
+                    "Discord",
+                    format!(
+                        "**{}**",
+                        if let Some(id) = profile.discord_id {
+                            format!("<@{}>", id)
+                        } else {
+                            "Not linked".to_string()
+                        }
+                    ),
+                    true,
+                )
                 .color(profile.stats.top_diff.color);
 
             interaction

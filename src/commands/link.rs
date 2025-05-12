@@ -12,6 +12,7 @@ pub async fn run(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let db = &database.client;
     let profile_id = get_option_as_f64(interaction, "profile_id", 0.) as u64;
+    let user_id = interaction.user.id.get().to_string();
 
     interaction
         .create_response(
@@ -36,7 +37,33 @@ pub async fn run(
             }
         };
 
-        let collection = database.get_collection("onuzglorp-bot", "users");
+        match profile.discord_id {
+            Some(discord_id) => {
+                let collection = database.get_collection("onuzglorp-bot", "users");
+                if discord_id == user_id {
+                    //TODO: Logic to link the profile to the user
+                } else {
+                    interaction
+                        .edit_response(
+                            ctx,
+                            EditInteractionResponse::new()
+                                .content("⚠️ Your discord account **doesn't match** with the TUF profile.\nPlease make sure you linked the correct discord account on TUForums."),
+                        )
+                        .await
+                        .expect("Failed to edit response");
+                }
+            }
+            None => {
+                interaction
+                    .edit_response(
+                        ctx,
+                        EditInteractionResponse::new()
+                            .content("⚠️ This profile hasn't linked to any Discord account"),
+                    )
+                    .await
+                    .expect("Failed to edit response");
+            }
+        }
     } else {
         interaction
             .edit_response(
