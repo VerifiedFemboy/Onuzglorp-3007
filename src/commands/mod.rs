@@ -3,6 +3,7 @@ pub mod calc_score;
 pub mod clear;
 pub mod help;
 pub mod leaderboard;
+pub mod link;
 pub mod ping;
 pub mod profile;
 pub mod random_lvl;

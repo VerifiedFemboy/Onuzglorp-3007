@@ -13,11 +13,13 @@ use serenity::{
 };
 
 mod commands;
+mod database;
 mod formulas;
 mod tuforums;
 mod utils;
-mod database;
-struct Handler;
+struct Handler {
+    db: Database,
+}
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -56,6 +58,10 @@ impl EventHandler for Handler {
                     commands::random_lvl::run(&ctx, &command).await.unwrap();
                     None
                 }
+                "link" => {
+                    commands::link::run(&ctx, &command, &self.db).await.unwrap();
+                    None
+                }
                 _ => Some("Unknown command".to_string()),
             };
 
@@ -82,6 +88,7 @@ impl EventHandler for Handler {
                 commands::profile::register(),
                 commands::clear::register(),
                 commands::random_lvl::register(),
+                commands::link::register(),
             ],
         )
         .await;
@@ -109,10 +116,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let database = Database::new(mongo_uri);
 
-    let db = database.connect().await.expect("Failed to connect to the database");
+    let db = database
+        .connect()
+        .await
+        .expect("Failed to connect to the database");
 
     let mut client = Client::builder(token_env, GatewayIntents::all())
-        .event_handler(Handler)
+        .event_handler(Handler { db })
         .event_handler(LeaderboardHandler)
         .activity(ActivityData::watching("TUForums"))
         .await?;
