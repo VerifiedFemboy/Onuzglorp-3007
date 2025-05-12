@@ -1,9 +1,10 @@
+use mongodb::bson::doc;
 use serenity::all::{
     CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
     CreateInteractionResponse, CreateInteractionResponseMessage, EditInteractionResponse,
 };
 
-use crate::{database::Database, tuforums::profile, utils::get_option_as_f64};
+use crate::{database::Database, tuforums::profile::get_profile};
 
 pub async fn run(
     ctx: &Context,
@@ -11,20 +12,24 @@ pub async fn run(
     database: &Database,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let db = &database.client;
-    let profile_id = get_option_as_f64(interaction, "profile_id", 0.) as u64;
-    let user_id = interaction.user.id.get().to_string();
+
+    let profile_id = interaction.data.options[0].value.as_i64().unwrap_or(0);
+
+    let user_id = interaction.user.id.get() as i64;
 
     interaction
         .create_response(
             ctx,
             CreateInteractionResponse::Defer(
-                CreateInteractionResponseMessage::new().content("Linking your profile..."),
+                CreateInteractionResponseMessage::new()
+                    .content("Linking your profile...")
+                    .ephemeral(true),
             ),
         )
         .await?;
 
     if let Some(_) = db {
-        let profile = match profile::get_profile(profile_id).await {
+        let profile = match get_profile(profile_id as u64).await {
             Ok(profile) => profile,
             Err(_) => {
                 interaction
@@ -39,9 +44,32 @@ pub async fn run(
 
         match profile.discord_id {
             Some(discord_id) => {
-                let collection = database.get_collection("onuzglorp-bot", "users");
-                if discord_id == user_id {
-                    //TODO: Logic to link the profile to the user
+                let collection = if let Some(collection) =
+                    database.get_collection("onuzglorp-bot", "users").await
+                {
+                    collection
+                } else {
+                    interaction
+                        .edit_response(
+                            ctx,
+                            EditInteractionResponse::new().content("⚠️ Database connection error"),
+                        )
+                        .await?;
+                    return Ok(());
+                };
+
+                if discord_id.parse::<i64>().unwrap_or_default() == user_id {
+                    link_profile(
+                        ctx,
+                        interaction,
+                        &collection,
+                        doc! {
+                            "_id": user_id,
+                            "profile_id": profile_id as i64,
+                        },
+                    )
+                    .await
+                    .expect("Failed to link profile");
                 } else {
                     interaction
                         .edit_response(
@@ -69,6 +97,46 @@ pub async fn run(
             .edit_response(
                 ctx,
                 EditInteractionResponse::new().content("Database connection error"),
+            )
+            .await?;
+    }
+
+    Ok(())
+}
+
+pub async fn link_profile(
+    ctx: &Context,
+    interaction: &CommandInteraction,
+    collection: &mongodb::Collection<mongodb::bson::Document>,
+    doc: mongodb::bson::Document,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    if collection
+        .find_one(doc! { "_id": doc.get_i64("_id")? })
+        .await?
+        .is_some()
+    {
+        interaction
+            .edit_response(
+                ctx,
+                EditInteractionResponse::new().content("⚠️ Your profile is already linked"),
+            )
+            .await?;
+        return Ok(());
+    }
+
+    if collection.insert_one(doc).await.is_ok() {
+        interaction
+            .edit_response(
+                ctx,
+                EditInteractionResponse::new()
+                    .content("✅ Your profile has been linked successfully!"),
+            )
+            .await?;
+    } else {
+        interaction
+            .edit_response(
+                ctx,
+                EditInteractionResponse::new().content("⚠️ Failed to link your profile"),
             )
             .await?;
     }

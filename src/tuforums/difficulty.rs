@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct Difficulty {
     pub name: String,
     pub icon: String,

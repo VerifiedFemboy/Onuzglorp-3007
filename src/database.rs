@@ -1,45 +1,28 @@
-use mongodb::{Client, bson, error::Result, options::ClientOptions};
+use mongodb::{Client, bson::Document};
 
 pub struct Database {
     pub client: Option<Client>,
-    connection: String,
 }
 
 impl Database {
-    pub fn new(connection: String) -> Self {
-        Self {
-            client: None,
-            connection,
-        }
-    }
-
-    pub async fn connect(&self) -> Result<Self> {
-        let client_options = ClientOptions::parse(&self.connection)
-            .await
-            .expect("Failed to parse client options");
-        let client = Client::with_options(client_options).expect("Failed to create client");
-        Ok(Self {
-            client: Some(client),
-            connection: self.connection.clone(),
-        })
-    }
-
-    #[allow(dead_code)]
-    pub fn get_database(&self, database_name: &str) -> Option<mongodb::Database> {
-        match &self.client {
-            Some(client) => Some(client.database(database_name)),
-            None => None,
-        }
-    }
-
-    pub fn get_collection(
+    pub async fn get_collection(
         &self,
-        database_name: &str,
+        db_name: &str,
         collection_name: &str,
-    ) -> Option<mongodb::Collection<bson::Document>> {
-        match &self.client {
-            Some(client) => Some(client.database(database_name).collection(collection_name)),
-            None => None,
+    ) -> Option<mongodb::Collection<Document>> {
+        if let Some(client) = &self.client {
+            let database = client.database(db_name);
+            let collection = database.collection(collection_name);
+            Some(collection)
+        } else {
+            None
         }
     }
+}
+
+pub async fn connect(uri: &str) -> Result<Database, Box<dyn std::error::Error>> {
+    let client = Client::with_uri_str(uri).await?;
+    Ok(Database {
+        client: Some(client),
+    })
 }

@@ -1,5 +1,6 @@
 use super::difficulty::{self, Difficulty, convert_from_hex_to_rgb};
 
+#[derive(Debug)]
 pub struct Profile {
     pub name: String,
     pub username: String,
@@ -8,6 +9,7 @@ pub struct Profile {
     pub stats: Stats,
 }
 
+#[derive(Debug)]
 pub struct Stats {
     pub rank: Rank,
     pub general_score: f64,
@@ -16,6 +18,7 @@ pub struct Stats {
     pub top_diff: Difficulty,
 }
 
+#[derive(Debug)]
 pub struct Rank(pub i64);
 
 pub async fn get_profile(id: u64) -> Result<Profile, Box<dyn std::error::Error + Send + Sync>> {
@@ -39,7 +42,7 @@ pub async fn get_profile(id: u64) -> Result<Profile, Box<dyn std::error::Error +
 
     let avatar = json["pfp"].as_str().unwrap_or("").to_string();
 
-    let discord_id = json["discordId"].as_str().map(|id| id.to_string());
+    let discord_id = json["discordId"].as_str().map(|s| s.to_string());
 
     let difficulty = &json["topDiff"];
 

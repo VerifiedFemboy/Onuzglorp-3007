@@ -18,7 +18,7 @@ mod formulas;
 mod tuforums;
 mod utils;
 struct Handler {
-    db: Database,
+    database: Database,
 }
 
 #[async_trait]
@@ -43,7 +43,9 @@ impl EventHandler for Handler {
                     None
                 }
                 "profile" => {
-                    commands::profile::run(&ctx, &command).await.unwrap();
+                    commands::profile::run(&ctx, &command, &self.database)
+                        .await
+                        .unwrap();
                     None
                 }
                 "clear" => {
@@ -59,7 +61,9 @@ impl EventHandler for Handler {
                     None
                 }
                 "link" => {
-                    commands::link::run(&ctx, &command, &self.db).await.unwrap();
+                    commands::link::run(&ctx, &command, &self.database)
+                        .await
+                        .unwrap();
                     None
                 }
                 _ => Some("Unknown command".to_string()),
@@ -114,15 +118,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mongo_uri = dotenv::var("MONGO_URI").expect("Expected a mongo uri in the environment");
 
-    let database = Database::new(mongo_uri);
-
-    let db = database
-        .connect()
+    let database = database::connect(&mongo_uri)
         .await
         .expect("Failed to connect to the database");
 
     let mut client = Client::builder(token_env, GatewayIntents::all())
-        .event_handler(Handler { db })
+        .event_handler(Handler { database })
         .event_handler(LeaderboardHandler)
         .activity(ActivityData::watching("TUForums"))
         .await?;
