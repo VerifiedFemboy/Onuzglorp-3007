@@ -1,6 +1,7 @@
 use std::vec;
 
 use commands::leaderboard::LeaderboardHandler;
+use database::Database;
 use dotenv::dotenv;
 use serenity::{
     Client,
@@ -12,10 +13,13 @@ use serenity::{
 };
 
 mod commands;
+mod database;
 mod formulas;
 mod tuforums;
 mod utils;
-struct Handler;
+struct Handler {
+    database: Database,
+}
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -39,7 +43,9 @@ impl EventHandler for Handler {
                     None
                 }
                 "profile" => {
-                    commands::profile::run(&ctx, &command).await.unwrap();
+                    commands::profile::run(&ctx, &command, &self.database)
+                        .await
+                        .unwrap();
                     None
                 }
                 "clear" => {
@@ -52,6 +58,12 @@ impl EventHandler for Handler {
                 }
                 "random_lvl" => {
                     commands::random_lvl::run(&ctx, &command).await.unwrap();
+                    None
+                }
+                "link" => {
+                    commands::link::run(&ctx, &command, &self.database)
+                        .await
+                        .unwrap();
                     None
                 }
                 _ => Some("Unknown command".to_string()),
@@ -80,6 +92,7 @@ impl EventHandler for Handler {
                 commands::profile::register(),
                 commands::clear::register(),
                 commands::random_lvl::register(),
+                commands::link::register(),
             ],
         )
         .await;
@@ -103,8 +116,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         dotenv::var("DISCORD_TOKEN").expect("Expected a token in the environment")
     };
 
+    let mongo_uri = dotenv::var("MONGO_URI").expect("Expected a mongo uri in the environment");
+
+    let database = database::connect(&mongo_uri)
+        .await
+        .expect("Failed to connect to the database");
+
     let mut client = Client::builder(token_env, GatewayIntents::all())
-        .event_handler(Handler)
+        .event_handler(Handler { database })
         .event_handler(LeaderboardHandler)
         .activity(ActivityData::watching("TUForums"))
         .await?;

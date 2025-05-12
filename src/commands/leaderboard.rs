@@ -1,6 +1,12 @@
-use serenity::{all::{
-    ButtonStyle, CommandInteraction, CommandOptionType, Context, CreateActionRow, CreateButton, CreateCommand, CreateCommandOption, CreateEmbed, CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseMessage, EditInteractionResponse, EventHandler, Interaction
-}, async_trait};
+use serenity::{
+    all::{
+        ButtonStyle, CommandInteraction, CommandOptionType, Context, CreateActionRow, CreateButton,
+        CreateCommand, CreateCommandOption, CreateEmbed, CreateEmbedFooter,
+        CreateInteractionResponse, CreateInteractionResponseMessage, EditInteractionResponse,
+        EventHandler, Interaction,
+    },
+    async_trait,
+};
 
 use crate::tuforums::leaderboard::get_leaderboard;
 // TODO: make buttons to change pages
@@ -74,40 +80,40 @@ impl EventHandler for LeaderboardHandler {
                     if let Ok(page) = page_str.parse::<u32>() {
                         let offset = (page - 1) * 15;
                         let leaders = get_leaderboard(offset, 15).await.unwrap_or_else(|_| vec![]);
-            
+
                         let embed = embedos(leaders, page);
-            
+
                         let lb_prev = CreateButton::new(format!("lb_previous:{}", page - 1))
                             .label("⬅️")
                             .style(ButtonStyle::Primary)
                             .disabled(page <= 1);
-            
+
                         let lb_next = CreateButton::new(format!("lb_next:{}", page + 1))
                             .label("➡️")
                             .style(ButtonStyle::Primary);
-            
-                        component.create_response(&ctx.http,
-                            CreateInteractionResponse::UpdateMessage(
-                                CreateInteractionResponseMessage::new()
-                                    .embed(embed)
-                                    .components(vec![
-                                        CreateActionRow::Buttons(vec![lb_prev, lb_next])
-                                    ])
+
+                        component
+                            .create_response(
+                                &ctx.http,
+                                CreateInteractionResponse::UpdateMessage(
+                                    CreateInteractionResponseMessage::new()
+                                        .embed(embed)
+                                        .components(vec![CreateActionRow::Buttons(vec![
+                                            lb_prev, lb_next,
+                                        ])]),
+                                ),
                             )
-                        )
-                        .await
-                        .expect("Failed to update leaderboard page");
+                            .await
+                            .expect("Failed to update leaderboard page");
                     }
                 }
                 _ => {
                     println!("Invalid button format");
                 }
             }
-            
         }
     }
 }
-
 
 pub fn register() -> CreateCommand {
     CreateCommand::new("leaderboard")
@@ -142,7 +148,5 @@ fn embedos(leaders: Vec<(u64, String, f64, f64, u64)>, page: u32) -> CreateEmbed
             false,
         )
         .color(0xFF69B4)
-        .footer(CreateEmbedFooter::new(format!(
-            "page {page}"
-        )))
+        .footer(CreateEmbedFooter::new(format!("page {page}")))
 }
