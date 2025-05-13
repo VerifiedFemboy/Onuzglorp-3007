@@ -73,6 +73,10 @@ pub struct LeaderboardHandler;
 impl EventHandler for LeaderboardHandler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Component(component) = interaction {
+            if !component.data.custom_id.starts_with("lb_") {
+                return;
+            }
+
             let custom_id = component.data.custom_id.as_str();
 
             match custom_id.split(':').collect::<Vec<_>>().as_slice() {

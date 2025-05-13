@@ -66,6 +66,12 @@ impl EventHandler for Handler {
                         .unwrap();
                     None
                 }
+                "setup" => {
+                    commands::setup::run(&ctx, &command, &self.database)
+                        .await
+                        .unwrap();
+                    None
+                }
                 _ => Some("Unknown command".to_string()),
             };
 
@@ -93,6 +99,7 @@ impl EventHandler for Handler {
                 commands::clear::register(),
                 commands::random_lvl::register(),
                 commands::link::register(),
+                commands::setup::register(),
             ],
         )
         .await;
