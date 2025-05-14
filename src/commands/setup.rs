@@ -5,7 +5,10 @@ use mongodb::{
     bson::{Document, doc},
 };
 use serenity::all::{
-    ChannelId, ChannelType, CommandInteraction, ComponentInteraction, ComponentInteractionDataKind, Context, CreateActionRow, CreateCommand, CreateInteractionResponse, CreateInteractionResponseMessage, CreateSelectMenu, CreateSelectMenuKind, CreateSelectMenuOption, EditInteractionResponse, Permissions
+    ChannelId, ChannelType, CommandInteraction, ComponentInteraction, ComponentInteractionDataKind,
+    Context, CreateActionRow, CreateCommand, CreateInteractionResponse,
+    CreateInteractionResponseMessage, CreateSelectMenu, CreateSelectMenuKind,
+    CreateSelectMenuOption, EditInteractionResponse, Permissions,
 };
 
 use crate::database::Database;
@@ -206,7 +209,15 @@ pub async fn setup_random_lvl_channel(
                     .await
                     .unwrap();
 
-                channel.guild().unwrap().say(ctx, "⚠️ **Random levels will be posted here every day at midnight UTC** ⚠️").await.unwrap();
+                channel
+                    .guild()
+                    .unwrap()
+                    .say(
+                        ctx,
+                        "⚠️ **Random levels will be posted here every day at midnight UTC** ⚠️",
+                    )
+                    .await
+                    .unwrap();
             }
         }
         None => {
