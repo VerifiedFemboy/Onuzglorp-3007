@@ -11,12 +11,15 @@ use serenity::{
     },
     async_trait,
 };
+use tasks::{change_status, daily_random_level};
 
 mod commands;
 mod database;
 mod formulas;
+mod tasks;
 mod tuforums;
 mod utils;
+
 struct Handler {
     database: Database,
 }
@@ -66,6 +69,12 @@ impl EventHandler for Handler {
                         .unwrap();
                     None
                 }
+                "setup" => {
+                    commands::setup::run(&ctx, &command, &self.database)
+                        .await
+                        .unwrap();
+                    None
+                }
                 _ => Some("Unknown command".to_string()),
             };
 
@@ -93,6 +102,7 @@ impl EventHandler for Handler {
                 commands::clear::register(),
                 commands::random_lvl::register(),
                 commands::link::register(),
+                commands::setup::register(),
             ],
         )
         .await;
@@ -102,6 +112,9 @@ impl EventHandler for Handler {
         } else {
             println!("{} is connected!", ready.user.name);
         }
+
+        daily_random_level::run_task(&ctx, &self.database).await;
+        change_status::run_task(&ctx).await
     }
 }
 

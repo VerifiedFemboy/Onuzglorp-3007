@@ -4,7 +4,7 @@ use serenity::all::{
 };
 
 use crate::{
-    tuforums::level::{get_level, get_total_levels},
+    tuforums::level::{Level, get_level, get_total_levels},
     utils::get_video_id,
 };
 
@@ -49,6 +49,21 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
         }
     };
 
+    interaction
+        .edit_response(
+            ctx,
+            EditInteractionResponse::new().embed(level_embed(level)),
+        )
+        .await?;
+
+    Ok(())
+}
+
+pub fn register() -> CreateCommand {
+    CreateCommand::new("random_lvl").description("Get a random level")
+}
+
+pub fn level_embed(level: Level) -> CreateEmbed {
     let embed = CreateEmbed::new()
         .author(
             CreateEmbedAuthor::new(format!(
@@ -63,6 +78,7 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
             format!("``{}``", level.first_clear),
             true,
         )
+        .field("**Total Clears**", level.clears.to_string(), true)
         .field(
             "**Highest Accuracy**",
             format!("{:.2}%", level.highest_acc),
@@ -70,21 +86,11 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
         )
         .field("**Highest Score**", "soon", true)
         .field("**Highest Speed**", "soon", true)
-        .field("**Total Clears**", level.clears.to_string(), true)
         .field("**Download**", format!("[[link]]({})", level.dl_link), true)
         .image(format!(
             "https://i.ytimg.com/vi/{}/maxresdefault.jpg",
             get_video_id(&level.vido_link)
         ))
         .color(level.difficulty.color);
-
-    interaction
-        .edit_response(ctx, EditInteractionResponse::new().embed(embed))
-        .await?;
-
-    Ok(())
-}
-
-pub fn register() -> CreateCommand {
-    CreateCommand::new("random_lvl").description("Get a random level")
+    embed
 }
