@@ -8,3 +8,4 @@ pub mod ping;
 pub mod profile;
 pub mod random_lvl;
 pub mod setup;
+pub mod server_info;
