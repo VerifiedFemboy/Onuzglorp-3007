@@ -13,6 +13,7 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
         .field("/ping", "Check if the bot is alive", false)
         .field("/profile", "Get your profile", false)
         .field("/randomlvl", "Get a random level", false)
+        .field("/setup", "Setup the bot to your expectetions", false)
         .color(0xFF69B4);
 
     interaction

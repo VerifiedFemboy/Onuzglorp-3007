@@ -47,14 +47,17 @@ pub async fn run_task(ctx: &Context, database: &Database) {
                 .await
                 .expect("Failed to collect documents");
 
-            let level_id = match request_random_lvl_id().await {
-                Ok(id) => id,
-                Err(_) => {
-                    println!("Failed to fetch random level ID.");
-                    continue;
-                }
+            let level_id = loop {
+                // Loop until we get a valid level ID
+                match request_random_lvl_id().await {
+                    Ok(id) => {
+                        break id;
+                    }
+                    Err(_) => {
+                        println!("Failed to fetch random level ID.");
+                    }
+                };
             };
-
             let level = match get_level(level_id).await {
                 Ok(level) => level,
                 Err(_) => {

@@ -18,17 +18,20 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
         )
         .await?;
 
-    let level_id = match request_random_lvl_id().await {
-        Ok(id) => id,
-        Err(_) => {
-            interaction
-                .edit_response(
-                    ctx,
-                    EditInteractionResponse::new().content("Failed to fetch random level ID."),
-                )
-                .await?;
-            return Ok(());
-        }
+    let level_id = loop {
+        // Loop until we get a valid level ID
+        match request_random_lvl_id().await {
+            Ok(id) => break id,
+            Err(_) => {
+                interaction
+                    .edit_response(
+                        ctx,
+                        EditInteractionResponse::new().content("Failed to fetch random level ID."),
+                    )
+                    .await?;
+                return Ok(());
+            }
+        };
     };
 
     let level = match get_level(level_id).await {

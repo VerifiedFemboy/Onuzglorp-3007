@@ -21,6 +21,14 @@ pub fn acc_by_judgement(
         / judgement_count
 }
 
+pub fn score_final(base_score: f64, x_acc: f64, tile_count: u32, misses: u32, speed: f64) -> f64 {
+    let score = base_score
+        * x_acc_multiplier(x_acc)
+        * speed_multiplier(speed)
+        * if misses == 0 { 1.1 } else { 1.0 };
+    score_v2(score, misses, tile_count)
+}
+
 fn x_acc_multiplier(x_acc: f64) -> f64 {
     return match x_acc {
         x if x < 95. => 1.0,
@@ -58,12 +66,4 @@ fn score_v2(score: f64, misses: u32, tile_count: u32) -> f64 {
         } else {
             0.5
         }
-}
-
-pub fn score_final(base_score: f64, x_acc: f64, tile_count: u32, misses: u32, speed: f64) -> f64 {
-    let score = base_score
-        * x_acc_multiplier(x_acc)
-        * speed_multiplier(speed)
-        * if misses == 0 { 1.1 } else { 1.0 };
-    score_v2(score, misses, tile_count)
 }
