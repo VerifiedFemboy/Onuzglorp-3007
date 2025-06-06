@@ -74,6 +74,7 @@ pub async fn get_level(id: u32) -> Result<Level, Box<dyn std::error::Error + Syn
     Ok(beatmap)
 }
 
+#[allow(dead_code)]
 pub async fn get_total_levels() -> Result<u64, Box<dyn std::error::Error + Sync + Send>> {
     let resposne = reqwest::get("https://api.tuforums.com/v2/database/statistics")
         .await
@@ -88,4 +89,27 @@ pub async fn get_total_levels() -> Result<u64, Box<dyn std::error::Error + Sync 
     let total_levels = json["overview"]["totalLevels"].as_u64().unwrap_or(0);
 
     Ok(total_levels)
+}
+
+pub async fn request_random_lvl_id() -> Result<u32, Box<dyn std::error::Error + Send + Sync>> {
+    let response = match reqwest::get("https://api.tuforums.com/v2/database/levels?limit=1&offset=0&query=&sort=RANDOM_ASC&deletedFilter=hide&clearedFilter=show&pguRange=P1,U20&specialDifficulties=Marathon,Gimmick")
+    .await {
+        Ok(res) => res,
+        Err(_) => {
+            eprintln!("Failed to fetch random level ID");
+            return Err("Failed to fetch random level ID".into());
+        }
+    };
+
+    let json: serde_json::Value = response.json().await.expect("Failed to parse JSON");
+
+    let level_id = match json["results"][0]["id"].as_u64() {
+        Some(id) => id,
+        None => {
+            eprintln!("Failed to get level ID from response ID: {}", json["results"]["id"]);
+            return Err("Failed to get level ID".into());
+        }
+    };
+
+    Ok(level_id as u32)
 }

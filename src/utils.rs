@@ -1,7 +1,7 @@
 use serenity::all::CommandInteraction;
 
 //TODO: find a possible way to make those functions to one as a generic function
-
+#[allow(dead_code)]
 pub fn get_option_as_f64(interaction: &CommandInteraction, name: &str, default: f64) -> f64 {
     interaction
         .data

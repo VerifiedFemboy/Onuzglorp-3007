@@ -9,7 +9,7 @@ use tokio::time::sleep;
 use crate::{
     commands::random_lvl::level_embed,
     database::Database,
-    tuforums::level::{get_level, get_total_levels},
+    tuforums::level::{get_level, request_random_lvl_id},
 };
 use chrono::Duration as ChronoDuration;
 
@@ -43,20 +43,18 @@ pub async fn run_task(ctx: &Context, database: &Database) {
                 .await
                 .expect("Failed to collect documents");
 
-            let total_levels = match get_total_levels().await {
-                Ok(levels) => levels,
+            let level_id = match request_random_lvl_id().await {
+                Ok(id) => id,
                 Err(_) => {
-                    println!("Failed to fetch total levels");
+                    println!("Failed to fetch random level ID.");
                     continue;
                 }
             };
 
-            let random_level = rand::random::<u64>() % total_levels;
-
-            let level = match get_level(random_level as u32).await {
+            let level = match get_level(level_id).await {
                 Ok(level) => level,
                 Err(_) => {
-                    println!("Unable to retrieve the level with ID {}.", random_level);
+                    println!("Unable to retrieve the level with ID {}.", level_id);
                     continue;
                 }
             };

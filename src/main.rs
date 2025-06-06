@@ -13,6 +13,8 @@ use serenity::{
 };
 use tasks::{change_status, daily_random_level};
 
+use crate::tasks::actix_web_main;
+
 mod commands;
 mod database;
 mod formulas;
@@ -114,7 +116,8 @@ impl EventHandler for Handler {
         }
 
         daily_random_level::run_task(&ctx, &self.database).await;
-        change_status::run_task(&ctx).await
+        change_status::run_task(&ctx).await;
+        actix_web_main::run_task().await.expect("Failed to start Actix web server");
     }
 }
 

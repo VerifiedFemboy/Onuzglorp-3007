@@ -41,7 +41,7 @@ fn speed_multiplier(speed: f64) -> f64 {
 }
 
 fn score_v2(score: f64, misses: u32, tile_count: u32) -> f64 {
-    let am = (misses as f64 - (tile_count as f64 * 10.0 / 315.0).floor() / 10.0).max(0.0);
+    let am = (misses as f64 - (tile_count as f64 / 315.0).floor()).max(0.0);
 
     let k_one = ((am - 1.0) / 24.5).powf(0.7) * 0.2;
     let k_two = ((50.0 - am) / 24.5).powf(0.7) * 0.2;

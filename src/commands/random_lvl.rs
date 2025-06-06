@@ -4,7 +4,7 @@ use serenity::all::{
 };
 
 use crate::{
-    tuforums::level::{Level, get_level, get_total_levels},
+    tuforums::level::{get_level, request_random_lvl_id, Level},
     utils::get_video_id,
 };
 
@@ -18,22 +18,20 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
         )
         .await?;
 
-    let total_levels = match get_total_levels().await {
-        Ok(levels) => levels,
+    let level_id = match request_random_lvl_id().await {
+        Ok(id) => id,
         Err(_) => {
             interaction
                 .edit_response(
                     ctx,
-                    EditInteractionResponse::new().content("Failed to fetch levels."),
+                    EditInteractionResponse::new().content("Failed to fetch random level ID."),
                 )
                 .await?;
             return Ok(());
         }
     };
 
-    let random_level = rand::random::<u64>() % total_levels;
-
-    let level = match get_level(random_level as u32).await {
+    let level = match get_level(level_id).await {
         Ok(level) => level,
         Err(_) => {
             interaction
@@ -41,7 +39,7 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
                     ctx,
                     EditInteractionResponse::new().content(format!(
                         "Unable to retrieve the level with ID {}. Please try again later.",
-                        random_level
+                        level_id
                     )),
                 )
                 .await?;
@@ -62,6 +60,7 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
 pub fn register() -> CreateCommand {
     CreateCommand::new("random_lvl").description("Get a random level")
 }
+
 
 pub fn level_embed(level: Level) -> CreateEmbed {
     let embed = CreateEmbed::new()
