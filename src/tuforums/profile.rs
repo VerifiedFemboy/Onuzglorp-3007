@@ -90,7 +90,7 @@ pub async fn get_profile(
         cache.lock().await.add(
             format!("profile_{id}"),
             profile.clone(),
-            Some(LiveTime::Minutes(1)),
+            Some(LiveTime::Minutes(10)),
         );
     }
 

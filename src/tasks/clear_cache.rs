@@ -13,15 +13,15 @@ pub async fn run_task(cache_arc: &Arc<Mutex<CacheManager>>) {
 
             let mut cache = cache_arc.lock().await;
             if cache.cache.is_empty() {
-                log_message("Cache is empty, nothing to clear.", LogLevel::Info);
+                log_message("Cache is empty, nothing to clear.", LogLevel::Cache);
                 continue;
             }
 
-            log_message("Clearing cache...", LogLevel::Info);
+            log_message("Clearing cache...", LogLevel::Cache);
             cache.cleanup_expired();
             log_message(
                 &format!("Cache cleared. Current cache size: {}", cache.cache.len()),
-                LogLevel::Info,
+                LogLevel::Cache,
             );
         }
     });

@@ -2,11 +2,16 @@ use std::sync::Arc;
 
 use mongodb::bson::doc;
 use serenity::all::{
-    CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption, CreateEmbed, CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseMessage, EditInteractionResponse
+    CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
+    CreateEmbed, CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseMessage,
+    EditInteractionResponse,
 };
 use tokio::sync::Mutex;
 
-use crate::{cache_manager::CacheManager, database::Database, log_message, tuforums::profile::get_profile, LogLevel};
+use crate::{
+    LogLevel, cache_manager::CacheManager, database::Database, log_message,
+    tuforums::profile::get_profile,
+};
 
 pub async fn run(
     ctx: &Context,
@@ -133,7 +138,10 @@ pub async fn run(
                 )
                 .await
                 .unwrap();
-            log_message(format!("Couldn't fetch profile {e}").as_str(), LogLevel::Error);
+            log_message(
+                format!("Couldn't fetch profile {e}").as_str(),
+                LogLevel::Error,
+            );
             return Ok(());
         }
     };

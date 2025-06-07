@@ -174,10 +174,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 pub fn log_message(message: &str, log_level: LogLevel) {
     let now = Local::now().format("%Y-%m-%d %I:%M:%S %p");
     match log_level {
-        LogLevel::Info => println!("\x1b[32m[{}] [INFO] {}\x1b[0m", now, message),      // Green
+        LogLevel::Info => println!("\x1b[32m[{}] [INFO] {}\x1b[0m", now, message), // Green
         LogLevel::Warning => println!("\x1b[33m[{}] [WARNING] {}\x1b[0m", now, message), // Yellow
-        LogLevel::Error => eprintln!("\x1b[31m[{}] [ERROR] {}\x1b[0m", now, message),    // Red
-        LogLevel::Cache => println!("\x1b[35m[{}] [CACHE] {}\x1b[0m", now, message),     // Purple
+        LogLevel::Error => eprintln!("\x1b[31m[{}] [ERROR] {}\x1b[0m", now, message), // Red
+        LogLevel::Cache => println!("\x1b[35m[{}] [CACHE] {}\x1b[0m", now, message), // Purple
     }
 }
 

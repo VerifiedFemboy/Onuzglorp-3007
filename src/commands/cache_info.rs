@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use serenity::all::{Color, CommandInteraction, Context, CreateCommand, CreateEmbed, CreateInteractionResponseMessage};
+use serenity::all::{
+    Color, CommandInteraction, Context, CreateCommand, CreateEmbed,
+    CreateInteractionResponseMessage,
+};
 
 use crate::{cache_manager::CacheManager, tuforums::profile::Profile, utils::get_memory_info};
 
@@ -41,8 +44,7 @@ pub async fn run(
         .create_response(
             ctx,
             serenity::all::CreateInteractionResponse::Message(
-                CreateInteractionResponseMessage::new()
-                    .embed(embed),
+                CreateInteractionResponseMessage::new().embed(embed),
             ),
         )
         .await

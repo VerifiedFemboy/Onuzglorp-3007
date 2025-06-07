@@ -20,10 +20,19 @@ impl CacheManager {
         }
     }
 
-    pub fn add<T: 'static + Send + Sync>(&mut self, key: String, value: T, time_live: Option<LiveTime>) {
+    pub fn add<T: 'static + Send + Sync>(
+        &mut self,
+        key: String,
+        value: T,
+        time_live: Option<LiveTime>,
+    ) {
         let expires = match time_live {
-            Some(LiveTime::Hours(hours)) => Some(Instant::now() + Duration::from_secs(hours * 3600)),
-            Some(LiveTime::Minutes(minutes)) => Some(Instant::now() + Duration::from_secs(minutes * 60)),
+            Some(LiveTime::Hours(hours)) => {
+                Some(Instant::now() + Duration::from_secs(hours * 3600))
+            }
+            Some(LiveTime::Minutes(minutes)) => {
+                Some(Instant::now() + Duration::from_secs(minutes * 60))
+            }
             None => None, // No expiration
         };
         log_message(format!("{} added to cache", &key).as_str(), LogLevel::Cache);
@@ -48,7 +57,10 @@ impl CacheManager {
         };
 
         if expired {
-            log_message(format!("{} has expired. Deleting the cache", key).as_str(), LogLevel::Cache);
+            log_message(
+                format!("{} has expired. Deleting the cache", key).as_str(),
+                LogLevel::Cache,
+            );
             self.cache.remove(key);
             return None; // Entry has expired
         }
@@ -68,7 +80,10 @@ impl CacheManager {
         };
 
         if expired {
-            log_message(format!("{} has expired. Deleting the cache", key).as_str(), LogLevel::Cache);
+            log_message(
+                format!("{} has expired. Deleting the cache", key).as_str(),
+                LogLevel::Cache,
+            );
             self.cache.remove(key);
             return None;
         }
