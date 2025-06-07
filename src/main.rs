@@ -1,4 +1,4 @@
-use std::vec;
+use std::{sync::Arc, vec};
 
 use commands::leaderboard::LeaderboardHandler;
 use database::Database;
@@ -12,9 +12,12 @@ use serenity::{
     async_trait,
 };
 use tasks::{change_status, daily_random_level};
+use tokio::sync::Mutex;
 
-use crate::tasks::actix_web_main;
+use crate::{cache_manager::CacheManager, tasks::clear_cache};
+use chrono::Local;
 
+mod cache_manager;
 mod commands;
 mod database;
 mod formulas;
@@ -24,6 +27,7 @@ mod utils;
 
 struct Handler {
     database: Database,
+    cache_manager: Arc<Mutex<CacheManager>>,
 }
 
 #[async_trait]
@@ -48,7 +52,7 @@ impl EventHandler for Handler {
                     None
                 }
                 "profile" => {
-                    commands::profile::run(&ctx, &command, &self.database)
+                    commands::profile::run(&ctx, &command, &self.database, &self.cache_manager)
                         .await
                         .unwrap();
                     None
@@ -73,6 +77,12 @@ impl EventHandler for Handler {
                 }
                 "setup" => {
                     commands::setup::run(&ctx, &command, &self.database)
+                        .await
+                        .unwrap();
+                    None
+                }
+                "cache" => {
+                    commands::cache_info::run(&ctx, &command, &self.cache_manager)
                         .await
                         .unwrap();
                     None
@@ -105,6 +115,7 @@ impl EventHandler for Handler {
                 commands::random_lvl::register(),
                 commands::link::register(),
                 commands::setup::register(),
+                commands::cache_info::register(),
             ],
         )
         .await;
@@ -117,7 +128,10 @@ impl EventHandler for Handler {
 
         daily_random_level::run_task(&ctx, &self.database).await;
         change_status::run_task(&ctx).await;
-        actix_web_main::run_task().await.expect("Failed to start Actix web server");
+        // actix_web_main::run_task(&self.cache_manager)
+        //     .await
+        //     .expect("Failed to start Actix web server");
+        clear_cache::run_task(&self.cache_manager).await;
     }
 }
 
@@ -138,8 +152,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .expect("Failed to connect to the database");
 
+    let cache_manager = Arc::new(Mutex::new(CacheManager::new()));
+
     let mut client = Client::builder(token_env, GatewayIntents::all())
-        .event_handler(Handler { database })
+        .event_handler(Handler {
+            database,
+            cache_manager,
+        })
         .event_handler(LeaderboardHandler)
         .activity(ActivityData::watching("TUForums"))
         .await?;
@@ -150,4 +169,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+pub fn log_message(message: &str, log_level: LogLevel) {
+    let now = Local::now().format("%Y-%m-%d %I:%M:%S %p");
+    match log_level {
+        LogLevel::Info => println!("\x1b[32m[{}] [INFO] {}\x1b[0m", now, message),      // Green
+        LogLevel::Warning => println!("\x1b[33m[{}] [WARNING] {}\x1b[0m", now, message), // Yellow
+        LogLevel::Error => eprintln!("\x1b[31m[{}] [ERROR] {}\x1b[0m", now, message),    // Red
+        LogLevel::Cache => println!("\x1b[35m[{}] [CACHE] {}\x1b[0m", now, message),     // Purple
+    }
+}
+
+pub enum LogLevel {
+    Info,
+    Warning,
+    Error,
+    Cache,
 }

@@ -1,6 +1,10 @@
+use tokio::sync::Mutex;
+
+use crate::cache_manager::{CacheManager, LiveTime};
+
 use super::difficulty::{self, Difficulty, convert_from_hex_to_rgb};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Profile {
     pub name: String,
     pub username: String,
@@ -9,7 +13,7 @@ pub struct Profile {
     pub stats: Stats,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Stats {
     pub rank: Rank,
     pub general_score: f64,
@@ -18,10 +22,23 @@ pub struct Stats {
     pub top_diff: Difficulty,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Rank(pub i64);
 
-pub async fn get_profile(id: u64) -> Result<Profile, Box<dyn std::error::Error + Send + Sync>> {
+pub async fn get_profile(
+    id: u64,
+    cache_manager: Option<&Mutex<CacheManager>>,
+) -> Result<(Profile, bool), Box<dyn std::error::Error + Send + Sync>> {
+    if let Some(cache) = cache_manager {
+        if let Some(profile) = cache
+            .lock()
+            .await
+            .get::<Profile>(format!("profile_{id}").as_str())
+        {
+            return Ok((profile.clone(), true)); // TODO: come up with a better way without cloning to less use memory
+        }
+    }
+
     let response = reqwest::get(format!("https://api.tuforums.com/v2/database/players/{id}"))
         .await
         .expect("Failed to send request");
@@ -69,5 +86,13 @@ pub async fn get_profile(id: u64) -> Result<Profile, Box<dyn std::error::Error +
         stats,
     };
 
-    Ok(profile)
+    if let Some(cache) = cache_manager {
+        cache.lock().await.add(
+            format!("profile_{id}"),
+            profile.clone(),
+            Some(LiveTime::Minutes(1)),
+        );
+    }
+
+    Ok((profile, false))
 }

@@ -5,7 +5,10 @@ use mongodb::{
     bson::{Document, doc},
 };
 use serenity::all::{
-    ChannelId, CommandInteraction, ComponentInteraction, ComponentInteractionDataKind, Context, CreateCommand, CreateInteractionResponse, CreateInteractionResponseMessage, CreateQuickModal, CreateSelectMenu, CreateSelectMenuKind, CreateSelectMenuOption, EditInteractionResponse, Permissions
+    ChannelId, CommandInteraction, ComponentInteraction, ComponentInteractionDataKind, Context,
+    CreateCommand, CreateInteractionResponse, CreateInteractionResponseMessage, CreateQuickModal,
+    CreateSelectMenu, CreateSelectMenuKind, CreateSelectMenuOption, EditInteractionResponse,
+    Permissions,
 };
 
 use crate::database::Database;
@@ -119,86 +122,91 @@ pub async fn setup_random_lvl_channel(
     let guild_id = interaction.guild_id.unwrap();
     let user_id = interaction.user.id;
 
-
     let response = interaction
-        .quick_modal(ctx,
+        .quick_modal(
+            ctx,
             CreateQuickModal::new("Text Channel Setup")
-            .timeout(Duration::from_secs(60))
-            .short_field("channel id")
-        ).await.unwrap();
-
+                .timeout(Duration::from_secs(60))
+                .short_field("channel id"),
+        )
+        .await
+        .unwrap();
 
     match response {
         Some(modal_interaction) => {
-                // Extract the channel id from the modal's fields
-                let channel_input = modal_interaction.inputs[0].as_str();
+            // Extract the channel id from the modal's fields
+            let channel_input = modal_interaction.inputs[0].as_str();
 
-                if channel_input.is_empty() {
+            if channel_input.is_empty() {
+                modal_interaction
+                    .interaction
+                    .edit_response(
+                        ctx,
+                        EditInteractionResponse::new()
+                            .content("❌ Channel ID cannot be empty")
+                            .components(vec![]),
+                    )
+                    .await
+                    .unwrap();
+                return;
+            }
+
+            // Check if the provided channel ID exists in the guild
+            let channel_id = match channel_input.parse::<u64>() {
+                Ok(id) => ChannelId::new(id),
+                Err(_) => {
                     modal_interaction
-                        .interaction.edit_response(
-                            ctx,
-                            EditInteractionResponse::new()
-                                .content("❌ Channel ID cannot be empty")
-                                .components(vec![]),
-                        )
-                        .await
-                        .unwrap();
-                    return;
-                }
-
-                // Check if the provided channel ID exists in the guild
-                let channel_id = match channel_input.parse::<u64>() {
-                    Ok(id) => ChannelId::new(id),
-                    Err(_) => {
-                        modal_interaction.interaction
-                            .create_response(
-                                ctx,
-                                CreateInteractionResponse::UpdateMessage(
-                                    CreateInteractionResponseMessage::new()
-                                        .content("❌ Invalid channel ID format")
-                                        .components(vec![]),
-                                )
-                            )
-                            .await
-                            .unwrap();
-                        return;
-                    }
-                };
-
-                let channel = match ctx.http.get_channel(channel_id).await {
-                    Ok(channel) => channel,
-                    Err(_) => {
-                        modal_interaction.interaction
-                            .create_response(
-                                ctx,
-                                CreateInteractionResponse::UpdateMessage(
-                                    CreateInteractionResponseMessage::new()
-                                        .content("❌ Channel not found")
-                                        .components(vec![]),
-                                )
-                            )
-                            .await
-                            .unwrap();
-                        return;
-                    }
-                };
-
-                if channel.guild().map(|g| g.guild_id) != Some(guild_id) {
-                    modal_interaction.interaction
+                        .interaction
                         .create_response(
                             ctx,
                             CreateInteractionResponse::UpdateMessage(
                                 CreateInteractionResponseMessage::new()
-                                    .content("❌ Channel does not belong to this server")
+                                    .content("❌ Invalid channel ID format")
                                     .components(vec![]),
-                            )
+                            ),
                         )
                         .await
                         .unwrap();
                     return;
                 }
+            };
 
-                if collection.find_one(doc! {"guild_id": guild_id.get().to_string(), "type": "daily-random-lvl-channel"}).await.unwrap().is_some() {
+            let channel = match ctx.http.get_channel(channel_id).await {
+                Ok(channel) => channel,
+                Err(_) => {
+                    modal_interaction
+                        .interaction
+                        .create_response(
+                            ctx,
+                            CreateInteractionResponse::UpdateMessage(
+                                CreateInteractionResponseMessage::new()
+                                    .content("❌ Channel not found")
+                                    .components(vec![]),
+                            ),
+                        )
+                        .await
+                        .unwrap();
+                    return;
+                }
+            };
+
+            if channel.guild().map(|g| g.guild_id) != Some(guild_id) {
+                modal_interaction
+                    .interaction
+                    .create_response(
+                        ctx,
+                        CreateInteractionResponse::UpdateMessage(
+                            CreateInteractionResponseMessage::new()
+                                .content("❌ Channel does not belong to this server")
+                                .components(vec![]),
+                        ),
+                    )
+                    .await
+                    .unwrap();
+                return;
+            }
+
+            if collection.find_one(doc! {"guild_id": guild_id.get().to_string(), "type": "daily-random-lvl-channel"}).await.unwrap().is_some() {
                     modal_interaction.interaction
                         .create_response(
                             ctx,
@@ -213,44 +221,47 @@ pub async fn setup_random_lvl_channel(
                     return;
                 }
 
-                collection
-                    .insert_one(doc! {
-                        "guild_id": guild_id.get().to_string(),
-                        "channel_id": channel_input,
-                        "type": "daily-random-lvl-channel",
-                        "setup_by": user_id.to_string(),
-                    })
-                    .await
-                    .expect("Failed to insert document");
+            collection
+                .insert_one(doc! {
+                    "guild_id": guild_id.get().to_string(),
+                    "channel_id": channel_input,
+                    "type": "daily-random-lvl-channel",
+                    "setup_by": user_id.to_string(),
+                })
+                .await
+                .expect("Failed to insert document");
 
-                modal_interaction.interaction
-                    .create_response(
-                        ctx,
-                        CreateInteractionResponse::UpdateMessage(
-                            CreateInteractionResponseMessage::new()
-                                .content(format!("✅ Daily random level channel setup in <#{}>", channel_input))
-                                .components(vec![]),
-                        ),
-                    )
-                    .await
-                    .unwrap();
+            modal_interaction
+                .interaction
+                .create_response(
+                    ctx,
+                    CreateInteractionResponse::UpdateMessage(
+                        CreateInteractionResponseMessage::new()
+                            .content(format!(
+                                "✅ Daily random level channel setup in <#{}>",
+                                channel_input
+                            ))
+                            .components(vec![]),
+                    ),
+                )
+                .await
+                .unwrap();
 
-                let channel = ctx
-                    .http
-                    .get_channel(ChannelId::new(channel_input.parse::<u64>().unwrap()))
-                    .await
-                    .unwrap();
+            let channel = ctx
+                .http
+                .get_channel(ChannelId::new(channel_input.parse::<u64>().unwrap()))
+                .await
+                .unwrap();
 
-                channel
-                    .guild()
-                    .unwrap()
-                    .say(
-                        ctx,
-                        "⚠️ **Random levels will be posted here every day at midnight UTC** ⚠️",
-                    )
-                    .await
-                    .unwrap();
-            
+            channel
+                .guild()
+                .unwrap()
+                .say(
+                    ctx,
+                    "⚠️ **Random levels will be posted here every day at midnight UTC** ⚠️",
+                )
+                .await
+                .unwrap();
         }
         None => {
             interaction
@@ -259,8 +270,8 @@ pub async fn setup_random_lvl_channel(
                     CreateInteractionResponse::UpdateMessage(
                         CreateInteractionResponseMessage::new()
                             .content("❌ Setup timed out")
-                            .components(vec![])
-                    )
+                            .components(vec![]),
+                    ),
                 )
                 .await
                 .unwrap();

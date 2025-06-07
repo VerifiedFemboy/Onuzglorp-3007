@@ -1,4 +1,0 @@
-- Make cache manager to limit those requests to Tuforums API
-- Make calcscore_j command that calcs score by judgements (if it is going to be useful)
-- Maybe dashboard
-- 

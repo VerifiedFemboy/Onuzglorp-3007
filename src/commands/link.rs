@@ -29,8 +29,8 @@ pub async fn run(
         .await?;
 
     if let Some(_) = db {
-        let profile = match get_profile(profile_id as u64).await {
-            Ok(profile) => profile,
+        let profile = match get_profile(profile_id as u64, None).await {
+            Ok(profile) => profile.0,
             Err(_) => {
                 interaction
                     .edit_response(

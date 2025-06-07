@@ -1,4 +1,5 @@
 use serenity::all::CommandInteraction;
+use sys_info;
 
 //TODO: find a possible way to make those functions to one as a generic function
 #[allow(dead_code)]
@@ -36,4 +37,47 @@ pub fn get_video_id(vido_link: &str) -> String {
         video_id.truncate(end);
     }
     video_id
+}
+
+pub struct MemoryInfo {
+    pub total: String,
+    pub used: String,
+    pub free: String,
+    pub swap_total: String,
+    pub swap_free: String,
+}
+
+pub fn get_memory_info() -> MemoryInfo {
+    fn format_bytes(kb: u64) -> String {
+        const KB: u64 = 1024;
+        const MB: u64 = KB * 1024;
+        const GB: u64 = MB * 1024;
+
+        match kb {
+            b if b >= GB => format!("{:.2} GB", b as f64 / GB as f64),
+            b if b >= MB => format!("{:.2} MB", b as f64 / MB as f64),
+            b if b >= KB => format!("{:.2} KB", b as f64 / KB as f64),
+            b => format!("{} B", b),
+        }
+    }
+
+    let mem = sys_info::mem_info().unwrap_or_else(|_| sys_info::MemInfo {
+        total: 0,
+        free: 0,
+        avail: 0,
+        buffers: 0,
+        cached: 0,
+        swap_total: 0,
+        swap_free: 0,
+    });
+
+    let used = mem.total.saturating_sub(mem.free);
+
+    MemoryInfo {
+        total: format_bytes(mem.total * 1024),
+        used: format_bytes(used * 1024),
+        free: format_bytes(mem.free * 1024),
+        swap_total: format_bytes(mem.swap_total * 1024),
+        swap_free: format_bytes(mem.swap_free * 1024),
+    }
 }
