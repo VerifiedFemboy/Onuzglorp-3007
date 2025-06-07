@@ -4,7 +4,7 @@ use serenity::all::{
 };
 
 use crate::{
-    tuforums::level::{get_level, request_random_lvl_id, Level},
+    tuforums::level::{Level, get_level, request_random_lvl_id},
     utils::get_video_id,
 };
 
@@ -60,7 +60,6 @@ pub async fn run(ctx: &Context, interaction: &CommandInteraction) -> Result<(), 
 pub fn register() -> CreateCommand {
     CreateCommand::new("random_lvl").description("Get a random level")
 }
-
 
 pub fn level_embed(level: Level) -> CreateEmbed {
     let embed = CreateEmbed::new()

@@ -106,7 +106,10 @@ pub async fn request_random_lvl_id() -> Result<u32, Box<dyn std::error::Error + 
     let level_id = match json["results"][0]["id"].as_u64() {
         Some(id) => id,
         None => {
-            eprintln!("Failed to get level ID from response ID: {}", json["results"]["id"]);
+            eprintln!(
+                "Failed to get level ID from response ID: {}",
+                json["results"]["id"]
+            );
             return Err("Failed to get level ID".into());
         }
     };

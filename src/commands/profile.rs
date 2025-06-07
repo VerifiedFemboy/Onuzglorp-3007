@@ -1,17 +1,21 @@
+use std::sync::Arc;
+
 use mongodb::bson::doc;
 use serenity::all::{
-    CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption,
-    CreateEmbed, CreateInteractionResponse, CreateInteractionResponseMessage,
-    EditInteractionResponse,
+    CommandInteraction, CommandOptionType, Context, CreateCommand, CreateCommandOption, CreateEmbed, CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseMessage, EditInteractionResponse
 };
+use tokio::sync::Mutex;
 
-use crate::{database::Database, tuforums::profile::get_profile};
+use crate::{cache_manager::CacheManager, database::Database, log_message, tuforums::profile::get_profile, LogLevel};
 
 pub async fn run(
     ctx: &Context,
     interaction: &CommandInteraction,
     database: &Database,
+    cache_manager: &Arc<Mutex<CacheManager>>,
 ) -> Result<(), serenity::Error> {
+    let start_time = std::time::Instant::now();
+
     let id = interaction
         .data
         .options
@@ -51,8 +55,13 @@ pub async fn run(
         .await
         .unwrap();
 
-    match get_profile(id).await {
-        Ok(profile) => {
+    match get_profile(id, Some(&cache_manager)).await {
+        Ok(result) => {
+            let profile = result.0;
+            let cached = result.1;
+            let stop_time = std::time::Instant::now();
+            let elapsed_time = stop_time.duration_since(start_time);
+
             let embed = CreateEmbed::new()
                 .title(format!("Profile of {} {}", profile.name, profile.username))
                 .thumbnail(profile.avatar)
@@ -103,7 +112,12 @@ pub async fn run(
                     ),
                     true,
                 )
-                .color(profile.stats.top_diff.color);
+                .color(profile.stats.top_diff.color)
+                .footer(CreateEmbedFooter::new(format!(
+                    "Response time: {} ms | Cache used: {}",
+                    elapsed_time.as_millis(),
+                    if cached { "Yes" } else { "No" }
+                )));
 
             interaction
                 .edit_response(ctx, EditInteractionResponse::new().embed(embed))
@@ -119,6 +133,7 @@ pub async fn run(
                 )
                 .await
                 .unwrap();
+            log_message(format!("Couldn't fetch profile {e}").as_str(), LogLevel::Error);
             return Ok(());
         }
     };
