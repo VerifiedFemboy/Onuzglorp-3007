@@ -2,21 +2,25 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
+use crate::database::{self, Database};
 use crate::{LogLevel, log_message};
 
 pub struct CacheEntry {
     pub value: Box<dyn Any + Send + Sync>,
-    pub expire: Option<Instant>, // For time live
+    pub expire: Option<Instant>,         // For time live
+    pub from_collection: Option<String>, // If it is from database then automatically save data from cache to mongo when it dies
 }
 
 pub struct CacheManager {
     pub cache: HashMap<String, CacheEntry>,
+    pub database: Database,
 }
 
 impl CacheManager {
-    pub fn new() -> Self {
+    pub fn new(database: Database) -> Self {
         CacheManager {
             cache: HashMap::new(),
+            database,
         }
     }
 
@@ -25,6 +29,7 @@ impl CacheManager {
         key: String,
         value: T,
         time_live: Option<LiveTime>,
+        from_collection: Option<String>,
     ) {
         let expires = match time_live {
             Some(LiveTime::Hours(hours)) => {
@@ -41,16 +46,17 @@ impl CacheManager {
             CacheEntry {
                 value: Box::new(value),
                 expire: expires,
+                from_collection,
             },
         );
     }
 
-    pub fn get<T: 'static>(&mut self, key: &str) -> Option<&T> {
-        let expired = if let Some(cache) = self.cache.get(key) {
+    pub async fn get<T: 'static + Send + Sync>(&mut self, key: &str) -> Option<&T> {
+        let (expired, from_collection) = if let Some(cache) = self.cache.get(key) {
             if let Some(expire) = cache.expire {
-                expire < Instant::now()
+                (expire < Instant::now(), cache.from_collection.clone())
             } else {
-                false // No expiration set
+                (false, cache.from_collection.clone()) // No expiration set
             }
         } else {
             return None; // Entry not found
@@ -61,7 +67,8 @@ impl CacheManager {
                 format!("{} has expired. Deleting the cache", key).as_str(),
                 LogLevel::Cache,
             );
-            self.cache.remove(key);
+
+            self.cache.remove(key); //TODO: Save to database if from_collection is Some
             return None; // Entry has expired
         }
 

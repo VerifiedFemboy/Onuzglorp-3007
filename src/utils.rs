@@ -81,3 +81,21 @@ pub fn get_memory_info() -> MemoryInfo {
         swap_free: format_bytes(mem.swap_free * 1024),
     }
 }
+
+pub fn format_timestamp(timestamp: u64) -> String {
+    let duration = std::time::Duration::from_secs(timestamp);
+    let secs = duration.as_secs();
+    let mins = secs / 60;
+    let hours = mins / 60;
+    let days = hours / 24;
+
+    if days > 0 {
+        format!("{}d {}h {}m {}s", days, hours % 24, mins % 60, secs % 60)
+    } else if hours > 0 {
+        format!("{}h {}m {}s", hours, mins % 60, secs % 60)
+    } else if mins > 0 {
+        format!("{}m {}s", mins, secs % 60)
+    } else {
+        format!("{}s", secs)
+    }
+}

@@ -34,6 +34,7 @@ pub async fn get_profile(
             .lock()
             .await
             .get::<Profile>(format!("profile_{id}").as_str())
+            .await
         {
             return Ok((profile.clone(), true)); // TODO: come up with a better way without cloning to less use memory
         }
@@ -91,6 +92,7 @@ pub async fn get_profile(
             format!("profile_{id}"),
             profile.clone(),
             Some(LiveTime::Minutes(10)),
+            None,
         );
     }
 

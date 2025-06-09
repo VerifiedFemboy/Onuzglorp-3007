@@ -87,6 +87,12 @@ impl EventHandler for Handler {
                         .unwrap();
                     None
                 }
+                "gambling" => {
+                    commands::gambling::run(&ctx, &command, &self.database, &self.cache_manager)
+                        .await
+                        .unwrap();
+                    None
+                }
                 _ => Some("Unknown command".to_string()),
             };
 
@@ -116,6 +122,7 @@ impl EventHandler for Handler {
                 commands::link::register(),
                 commands::setup::register(),
                 commands::cache_info::register(),
+                commands::gambling::register(),
             ],
         )
         .await;
@@ -152,7 +159,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .expect("Failed to connect to the database");
 
-    let cache_manager = Arc::new(Mutex::new(CacheManager::new()));
+    let cache_manager = Arc::new(Mutex::new(CacheManager::new(database.clone())));
 
     let mut client = Client::builder(token_env, GatewayIntents::all())
         .event_handler(Handler {
@@ -177,7 +184,7 @@ pub fn log_message(message: &str, log_level: LogLevel) {
         LogLevel::Info => println!("\x1b[32m[{}] [INFO] {}\x1b[0m", now, message), // Green
         LogLevel::Warning => println!("\x1b[33m[{}] [WARNING] {}\x1b[0m", now, message), // Yellow
         LogLevel::Error => eprintln!("\x1b[31m[{}] [ERROR] {}\x1b[0m", now, message), // Red
-        LogLevel::Cache => println!("\x1b[35m[{}] [CACHE] {}\x1b[0m", now, message), // Purple
+        LogLevel::Cache => println!("\x1b[95m[{}] [CACHE] {}\x1b[0m", now, message), // Pink (bright magenta)
     }
 }
 
