@@ -2,6 +2,9 @@ use std::any::Any;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
+use mongodb::bson::{doc, to_document};
+use serde::Serialize;
+
 use crate::database::{self, Database};
 use crate::{LogLevel, log_message};
 
@@ -49,6 +52,50 @@ impl CacheManager {
                 from_collection,
             },
         );
+    }
+
+    pub async fn get_serializable<T: 'static + Send + Sync + Serialize>(
+        &mut self,
+        key: &str,
+    ) -> Option<&T> {
+        let (expired, from_collection) = if let Some(cache) = self.cache.get(key) {
+            if let Some(expire) = cache.expire {
+                (expire < Instant::now(), cache.from_collection.clone())
+            } else {
+                (false, cache.from_collection.clone()) // No expiration set
+            }
+        } else {
+            return None; // Entry not found
+        };
+
+        if expired {
+            log_message(
+                format!("{} has expired. Deleting the cache", key).as_str(),
+                LogLevel::Cache,
+            );
+
+            // TODO: Test it when I come back home
+            if let Some(collection_name) = from_collection {
+                let collection = self
+                .database
+                .get_collection_gen::<T>("onuzglorp-bot", &collection_name).await.expect("Failed to get collection");
+
+                let filter = doc! {"cache_key": key};
+                if let Some(cache_entry) = self.cache.get(key) {
+
+                    if let Some(value) = cache_entry.value.downcast_ref::<T>() {
+                        let data = to_document(value).expect("Failed to serialize value");
+
+                        collection.update_one(filter, data).await.expect("Failed to update the data");
+                    }
+                }
+
+            }
+            self.cache.remove(key);
+            return None; // Entry has expired
+        }
+
+        self.cache.get(key)?.value.downcast_ref::<T>()
     }
 
     pub async fn get<T: 'static + Send + Sync>(&mut self, key: &str) -> Option<&T> {
