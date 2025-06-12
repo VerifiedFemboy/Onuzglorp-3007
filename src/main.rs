@@ -25,6 +25,7 @@ mod tasks;
 mod tuforums;
 mod utils;
 
+//TODO: Save logs to a file
 struct Handler {
     database: Database,
     cache_manager: Arc<Mutex<CacheManager>>,

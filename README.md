@@ -18,3 +18,4 @@ cargo run dev // to run the test bot
 - [x] Make cache manager to limit those requests to Tuforums API
 - [ ] Connect cache manager with leaderboard, level and clear info
 - [ ] Make calcscore_j command that calcs score by judgements (if it is going to be useful)
+- [ ] Log saver

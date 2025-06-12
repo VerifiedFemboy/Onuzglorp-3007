@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 use mongodb::bson::{doc, to_document};
 use serde::Serialize;
 
-use crate::database::{self, Database};
+use crate::database::Database;
 use crate::{LogLevel, log_message};
 
 pub struct CacheEntry {
