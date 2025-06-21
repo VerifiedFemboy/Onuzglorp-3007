@@ -3,10 +3,10 @@ use std::time::Duration;
 use serenity::all::{ActivityData, Context};
 use tokio::{spawn, time::sleep};
 
-use crate::{LogLevel, log_message};
+use crate::info;
 
 pub async fn run_task(ctx: &Context) {
-    log_message("Launching change status task", LogLevel::Info);
+    info!("Launching change status task");
     let ctx = ctx.clone();
 
     let activities = vec![

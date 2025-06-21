@@ -9,8 +9,7 @@ use serenity::all::{
 use tokio::sync::Mutex;
 
 use crate::{
-    LogLevel, cache_manager::CacheManager, database::Database, log_message,
-    tuforums::profile::get_profile,
+    cache_manager::CacheManager, database::Database, error, tuforums::profile::get_profile
 };
 
 pub async fn run(
@@ -138,10 +137,7 @@ pub async fn run(
                 )
                 .await
                 .unwrap();
-            log_message(
-                format!("Couldn't fetch profile {e}").as_str(),
-                LogLevel::Error,
-            );
+            error!(format!("Couldn't fetch profile {e}"));
             return Ok(());
         }
     };

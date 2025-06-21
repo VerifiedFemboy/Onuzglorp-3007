@@ -103,6 +103,7 @@ pub async fn run(
             .expect("Failed to edit the response");
     } else {
         let amount = utils::get_option_as_f64(interaction, "amount", 0.0) as u64;
+        
     }
 
     Ok(())
@@ -143,7 +144,7 @@ async fn get_gambling_stats(
     let mut cache = cache_manager.lock().await;
 
     if let Some(stats) = cache
-        .get::<GamblingStats>(format!("gambling_stats_{}", user_id).as_str())
+        .get_serializable::<GamblingStats>(format!("gambling_stats_{}", user_id).as_str())
         .await
     {
         return Ok((stats.clone(), true));
@@ -161,7 +162,7 @@ async fn get_gambling_stats(
             cache.add(
                 format!("gambling_stats_{}", user_id),
                 stats.clone(),
-                Some(LiveTime::Minutes(10)),
+                Some(LiveTime::Minutes(1)),
                 Some("gambling_stats".to_string()),
             );
             Ok((stats, false))

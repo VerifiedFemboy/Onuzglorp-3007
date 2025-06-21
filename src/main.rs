@@ -13,7 +13,6 @@ use serenity::{
 };
 use tasks::{change_status, daily_random_level};
 use tokio::sync::Mutex;
-
 use crate::{cache_manager::CacheManager, tasks::clear_cache};
 use chrono::Local;
 
@@ -24,6 +23,7 @@ mod formulas;
 mod tasks;
 mod tuforums;
 mod utils;
+mod logger;
 
 //TODO: Save logs to a file
 struct Handler {
@@ -177,21 +177,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
-}
-
-pub fn log_message(message: &str, log_level: LogLevel) {
-    let now = Local::now().format("%Y-%m-%d %I:%M:%S %p");
-    match log_level {
-        LogLevel::Info => println!("\x1b[32m[{}] [INFO] {}\x1b[0m", now, message), // Green
-        LogLevel::Warning => println!("\x1b[33m[{}] [WARNING] {}\x1b[0m", now, message), // Yellow
-        LogLevel::Error => eprintln!("\x1b[31m[{}] [ERROR] {}\x1b[0m", now, message), // Red
-        LogLevel::Cache => println!("\x1b[95m[{}] [CACHE] {}\x1b[0m", now, message), // Pink (bright magenta)
-    }
-}
-
-pub enum LogLevel {
-    Info,
-    Warning,
-    Error,
-    Cache,
 }

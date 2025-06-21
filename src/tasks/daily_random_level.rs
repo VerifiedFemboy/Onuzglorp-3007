@@ -7,16 +7,12 @@ use serenity::{
 use tokio::time::sleep;
 
 use crate::{
-    LogLevel,
-    commands::random_lvl::level_embed,
-    database::Database,
-    log_message,
-    tuforums::level::{get_level, request_random_lvl_id},
+    commands::random_lvl::level_embed, database::Database, info, tuforums::level::{get_level, request_random_lvl_id}
 };
 use chrono::Duration as ChronoDuration;
 
 pub async fn run_task(ctx: &Context, database: &Database) {
-    log_message("Launching daily random map task", LogLevel::Info);
+    info!("Launching daily random map task");
 
     let collection = database
         .get_collection("onuzglorp-bot", "setups")

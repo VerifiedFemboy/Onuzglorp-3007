@@ -6,7 +6,7 @@ use mongodb::bson::{doc, to_document};
 use serde::Serialize;
 
 use crate::database::Database;
-use crate::{LogLevel, log_message};
+use crate::cache;
 
 pub struct CacheEntry {
     pub value: Box<dyn Any + Send + Sync>,
@@ -43,7 +43,8 @@ impl CacheManager {
             }
             None => None, // No expiration
         };
-        log_message(format!("{} added to cache", &key).as_str(), LogLevel::Cache);
+        cache!(format!("{} added to cache", &key));
+
         self.cache.insert(
             key,
             CacheEntry {
@@ -69,10 +70,7 @@ impl CacheManager {
         };
 
         if expired {
-            log_message(
-                format!("{} has expired. Deleting the cache", key).as_str(),
-                LogLevel::Cache,
-            );
+            cache!(format!("{} has expired. Deleting the cache", key).as_str());
 
             // TODO: Test it when I come back home
             if let Some(collection_name) = from_collection {
@@ -89,7 +87,6 @@ impl CacheManager {
                         collection.update_one(filter, data).await.expect("Failed to update the data");
                     }
                 }
-
             }
             self.cache.remove(key);
             return None; // Entry has expired
@@ -110,10 +107,7 @@ impl CacheManager {
         };
 
         if expired {
-            log_message(
-                format!("{} has expired. Deleting the cache", key).as_str(),
-                LogLevel::Cache,
-            );
+            cache!(format!("{} has expired. Deleting the cache", key));
 
             self.cache.remove(key); //TODO: Save to database if from_collection is Some
             return None; // Entry has expired
@@ -134,10 +128,7 @@ impl CacheManager {
         };
 
         if expired {
-            log_message(
-                format!("{} has expired. Deleting the cache", key).as_str(),
-                LogLevel::Cache,
-            );
+            cache!(format!("{} has expired. Deleting the cache", key));
             self.cache.remove(key);
             return None;
         }
