@@ -17,7 +17,10 @@ pub async fn run_task(cache_arc: &Arc<Mutex<CacheManager>>) {
             }
             info!("Clearing cache...");
             cache.cleanup_expired();
-            cache!(format!("Cache cleared. Current cache size: {}", cache.cache.len()));
+            cache!(format!(
+                "Cache cleared. Current cache size: {}",
+                cache.cache.len()
+            ));
         }
     });
 }

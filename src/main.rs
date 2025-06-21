@@ -1,5 +1,6 @@
 use std::{sync::Arc, vec};
 
+use crate::{cache_manager::CacheManager, tasks::clear_cache};
 use commands::leaderboard::LeaderboardHandler;
 use database::Database;
 use dotenv::dotenv;
@@ -13,19 +14,17 @@ use serenity::{
 };
 use tasks::{change_status, daily_random_level};
 use tokio::sync::Mutex;
-use crate::{cache_manager::CacheManager, tasks::clear_cache};
-use chrono::Local;
 
 mod cache_manager;
 mod commands;
 mod database;
 mod formulas;
+mod logger;
 mod tasks;
 mod tuforums;
 mod utils;
-mod logger;
+mod anilist;
 
-//TODO: Save logs to a file
 struct Handler {
     database: Database,
     cache_manager: Arc<Mutex<CacheManager>>,
@@ -88,12 +87,18 @@ impl EventHandler for Handler {
                         .unwrap();
                     None
                 }
-                "gambling" => {
-                    commands::gambling::run(&ctx, &command, &self.database, &self.cache_manager)
+                "anilist" => {
+                    commands::anilist::run(&ctx, &command, &self.database, &self.cache_manager)
                         .await
                         .unwrap();
                     None
                 }
+                /* "gambling" => {
+                    commands::gambling::run(&ctx, &command, &self.database, &self.cache_manager)
+                        .await
+                        .unwrap();
+                    None
+                } */
                 _ => Some("Unknown command".to_string()),
             };
 
@@ -123,7 +128,8 @@ impl EventHandler for Handler {
                 commands::link::register(),
                 commands::setup::register(),
                 commands::cache_info::register(),
-                commands::gambling::register(),
+                commands::anilist::register(),
+                // commands::gambling::register(),
             ],
         )
         .await;
@@ -177,4 +183,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+mod tests {
+    #[cfg(test)]
+    mod anilist_tests {
+        use crate::anilist::anilist_user::request_anilist;
+
+        #[tokio::test]
+        async fn test_anilist_request() {
+            let username = "VerifiedFemboy"; // Replace with a valid Anilist username
+            request_anilist(username).await;
+        }
+    }
 }

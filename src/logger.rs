@@ -9,7 +9,7 @@ pub fn get_local() -> String {
     now.to_string()
 }
 
-//TODO: Find out if it is really efficient 
+//TODO: Find out if it is really efficient
 pub fn write_log(level: &str, msg: &str) {
     let log_entry = format!("[{}] [{}] {}\n", get_local(), level, msg);
     let mut file = OpenOptions::new()
@@ -23,7 +23,11 @@ pub fn write_log(level: &str, msg: &str) {
 #[macro_export]
 macro_rules! info {
     ($msg:expr) => {{
-        println!("\x1b[32m[{}] [INFO] {}\x1b[0m", $crate::logger::get_local(), $msg);
+        println!(
+            "\x1b[32m[{}] [INFO] {}\x1b[0m",
+            $crate::logger::get_local(),
+            $msg
+        );
         $crate::logger::write_log("INFO", &$msg.to_string());
     }};
 }
@@ -31,7 +35,11 @@ macro_rules! info {
 #[macro_export]
 macro_rules! warn {
     ($msg:expr) => {{
-        println!("\x1b[33m[{}] [WARNING] {}\x1b[0m", $crate::logger::get_local(), $msg);
+        println!(
+            "\x1b[33m[{}] [WARNING] {}\x1b[0m",
+            $crate::logger::get_local(),
+            $msg
+        );
         $crate::logger::write_log("WARNING", &$msg.to_string());
     }};
 }
@@ -39,7 +47,11 @@ macro_rules! warn {
 #[macro_export]
 macro_rules! error {
     ($msg:expr) => {{
-        eprintln!("\x1b[31m[{}] [ERROR] {}\x1b[0m", $crate::logger::get_local(), $msg);
+        eprintln!(
+            "\x1b[31m[{}] [ERROR] {}\x1b[0m",
+            $crate::logger::get_local(),
+            $msg
+        );
         $crate::logger::write_log("ERROR", &$msg.to_string());
     }};
 }
@@ -47,7 +59,11 @@ macro_rules! error {
 #[macro_export]
 macro_rules! cache {
     ($msg:expr) => {{
-        println!("\x1b[95m[{}] [CACHE] {}\x1b[0m", $crate::logger::get_local(), $msg);
+        println!(
+            "\x1b[95m[{}] [CACHE] {}\x1b[0m",
+            $crate::logger::get_local(),
+            $msg
+        );
         $crate::logger::write_log("CACHE", &$msg.to_string());
     }};
 }

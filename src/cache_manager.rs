@@ -5,8 +5,8 @@ use std::time::{Duration, Instant};
 use mongodb::bson::{doc, to_document};
 use serde::Serialize;
 
-use crate::database::Database;
 use crate::cache;
+use crate::database::Database;
 
 pub struct CacheEntry {
     pub value: Box<dyn Any + Send + Sync>,
@@ -75,16 +75,20 @@ impl CacheManager {
             // TODO: Test it when I come back home
             if let Some(collection_name) = from_collection {
                 let collection = self
-                .database
-                .get_collection_gen::<T>("onuzglorp-bot", &collection_name).await.expect("Failed to get collection");
+                    .database
+                    .get_collection_gen::<T>("onuzglorp-bot", &collection_name)
+                    .await
+                    .expect("Failed to get collection");
 
                 let filter = doc! {"cache_key": key};
                 if let Some(cache_entry) = self.cache.get(key) {
-
                     if let Some(value) = cache_entry.value.downcast_ref::<T>() {
                         let data = to_document(value).expect("Failed to serialize value");
 
-                        collection.update_one(filter, data).await.expect("Failed to update the data");
+                        collection
+                            .update_one(filter, data)
+                            .await
+                            .expect("Failed to update the data");
                     }
                 }
             }

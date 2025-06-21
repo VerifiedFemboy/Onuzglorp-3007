@@ -103,7 +103,6 @@ pub async fn run(
             .expect("Failed to edit the response");
     } else {
         let amount = utils::get_option_as_f64(interaction, "amount", 0.0) as u64;
-        
     }
 
     Ok(())

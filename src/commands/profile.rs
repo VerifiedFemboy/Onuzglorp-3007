@@ -9,7 +9,7 @@ use serenity::all::{
 use tokio::sync::Mutex;
 
 use crate::{
-    cache_manager::CacheManager, database::Database, error, tuforums::profile::get_profile
+    cache_manager::CacheManager, database::Database, error, tuforums::profile::get_profile,
 };
 
 pub async fn run(

@@ -7,7 +7,10 @@ use serenity::{
 use tokio::time::sleep;
 
 use crate::{
-    commands::random_lvl::level_embed, database::Database, info, tuforums::level::{get_level, request_random_lvl_id}
+    commands::random_lvl::level_embed,
+    database::Database,
+    error, info,
+    tuforums::level::{get_level, request_random_lvl_id},
 };
 use chrono::Duration as ChronoDuration;
 
@@ -30,7 +33,7 @@ pub async fn run_task(ctx: &Context, database: &Database) {
                 .unwrap();
             let duration_until_midnight = (next_midnight - now.naive_utc()).to_std().unwrap();
 
-            println!("Sleeping for {:?}", duration_until_midnight);
+            info!(format!("Sleeping for {:?}", duration_until_midnight));
             sleep(duration_until_midnight).await;
 
             let filter = mongodb::bson::doc! { "type": "daily-random-lvl-channel" };
@@ -50,14 +53,17 @@ pub async fn run_task(ctx: &Context, database: &Database) {
                         break id;
                     }
                     Err(_) => {
-                        println!("Failed to fetch random level ID.");
+                        error!("Failed to fetch random level ID.");
                     }
                 };
             };
             let level = match get_level(level_id).await {
                 Ok(level) => level,
                 Err(_) => {
-                    println!("Unable to retrieve the level with ID {}.", level_id);
+                    error!(format!(
+                        "Unable to retrieve the level with ID {}.",
+                        level_id
+                    ));
                     continue;
                 }
             };
@@ -71,9 +77,11 @@ pub async fn run_task(ctx: &Context, database: &Database) {
 
                 if let Ok(channel) = channel_id.to_channel(&ctx).await {
                     if let Channel::Guild(g_channel) = channel {
-                        sleep(Duration::from_secs(1)).await; // Sleep for 1 second to avoid rate limits
+                        sleep(Duration::from_secs(2)).await; // Sleep for 2 seconds to avoid rate limits
                         if let Err(e) = g_channel.send_message(&ctx.http, message.clone()).await {
-                            eprintln!("Failed to send embed: {:?}", e);
+                            error!(format!("Failed to send embed: {:?}", e));
+                        } else {
+                            info!("The level has been sent!");
                         }
                     }
                 }

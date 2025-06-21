@@ -1,3 +1,4 @@
+pub mod anilist;
 pub mod cache_info;
 pub mod calc_acc;
 pub mod calc_score;
