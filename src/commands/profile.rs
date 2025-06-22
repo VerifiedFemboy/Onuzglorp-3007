@@ -66,9 +66,8 @@ pub async fn run(
             let stop_time = std::time::Instant::now();
             let elapsed_time = stop_time.duration_since(start_time);
 
-            let embed = CreateEmbed::new()
+            let mut embed = CreateEmbed::new()
                 .title(format!("Profile of {} {}", profile.name, profile.username))
-                .thumbnail(profile.avatar)
                 .field(
                     "Rank",
                     {
@@ -123,6 +122,10 @@ pub async fn run(
                     if cached { "Yes" } else { "No" }
                 )));
 
+            if let Some(avatar) = &profile.avatar {
+                embed = embed.thumbnail(avatar);
+            }
+
             interaction
                 .edit_response(ctx, EditInteractionResponse::new().embed(embed))
                 .await
@@ -150,7 +153,7 @@ async fn get_profile_linked(
     database: &Database,
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
     let collection = database
-        .get_collection("onuzglorp-bot", "users")
+        .get_collection("onuzglorp-bot", "linked_tuf")
         .await
         .unwrap();
 

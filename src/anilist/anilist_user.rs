@@ -1,3 +1,5 @@
+use crate::error;
+
 const QUERY: &str = "query ($name: String) {
   User(name: $name) {
     id
@@ -59,7 +61,7 @@ pub struct Avatar {
     pub medium: String,
 }
 
-pub async fn request_anilist(username: &str) {
+pub async fn get_anilist_user_info(username: &str) -> Option<AnilistUser> {
     let client = reqwest::Client::new();
     let url = "https://graphql.anilist.co";
 
@@ -86,14 +88,10 @@ pub async fn request_anilist(username: &str) {
                         if let Some(user) = data["data"]["User"].as_object() {
                             let id = user["id"].as_i64().unwrap_or(0) as i32;
                             let name = user["name"].as_str().unwrap_or("").to_string();
-                            let avatar_large = user["avatar"]["large"]
-                                .as_str()
-                                .unwrap_or("")
-                                .to_string();
-                            let avatar_medium = user["avatar"]["medium"]
-                                .as_str()
-                                .unwrap_or("")
-                                .to_string();
+                            let avatar_large =
+                                user["avatar"]["large"].as_str().unwrap_or("").to_string();
+                            let avatar_medium =
+                                user["avatar"]["medium"].as_str().unwrap_or("").to_string();
                             let about = user["about"].as_str().map(|s| s.to_string());
 
                             let anilist_user = AnilistUser {
@@ -105,18 +103,25 @@ pub async fn request_anilist(username: &str) {
                                 },
                                 about,
                             };
-
-                            println!("Anilist User: {:?}", anilist_user);
+                            Some(anilist_user)
                         } else {
-                            eprintln!("No user data found");
+                            error!("User not found or invalid response format");
+                            None
                         }
-                    },
-                    Err(e) => eprintln!("Failed to parse JSON: {}", e),
+                    }
+                    Err(e) => {
+                        error!(format!("Failed to parse JSON response: {}", e));
+                        None
+                    }
                 }
             } else {
-                eprintln!("Error: {}", res.status());
+                error!(format!("Error: {}", res.status()));
+                None
             }
         }
-        Err(e) => eprintln!("Request failed: {}", e),
+        Err(e) => {
+            error!(format!("Request failed: {}", e));
+            None
+        }
     }
 }

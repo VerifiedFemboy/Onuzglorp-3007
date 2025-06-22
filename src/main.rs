@@ -15,6 +15,7 @@ use serenity::{
 use tasks::{change_status, daily_random_level};
 use tokio::sync::Mutex;
 
+mod anilist;
 mod cache_manager;
 mod commands;
 mod database;
@@ -23,7 +24,6 @@ mod logger;
 mod tasks;
 mod tuforums;
 mod utils;
-mod anilist;
 
 struct Handler {
     database: Database,
@@ -87,14 +87,8 @@ impl EventHandler for Handler {
                         .unwrap();
                     None
                 }
-                "anilist" => {
+                /* "anilist" => {
                     commands::anilist::run(&ctx, &command, &self.database, &self.cache_manager)
-                        .await
-                        .unwrap();
-                    None
-                }
-                /* "gambling" => {
-                    commands::gambling::run(&ctx, &command, &self.database, &self.cache_manager)
                         .await
                         .unwrap();
                     None
@@ -128,8 +122,7 @@ impl EventHandler for Handler {
                 commands::link::register(),
                 commands::setup::register(),
                 commands::cache_info::register(),
-                commands::anilist::register(),
-                // commands::gambling::register(),
+                // commands::anilist::register(),
             ],
         )
         .await;
@@ -188,12 +181,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 mod tests {
     #[cfg(test)]
     mod anilist_tests {
-        use crate::anilist::anilist_user::request_anilist;
+        use crate::anilist::anilist_user::get_anilist_user_info;
 
         #[tokio::test]
         async fn test_anilist_request() {
             let username = "VerifiedFemboy"; // Replace with a valid Anilist username
-            request_anilist(username).await;
+            get_anilist_user_info(username).await;
         }
     }
 }

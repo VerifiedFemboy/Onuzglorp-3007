@@ -8,7 +8,7 @@ use super::difficulty::{self, Difficulty, convert_from_hex_to_rgb};
 pub struct Profile {
     pub name: String,
     pub username: String,
-    pub avatar: String,
+    pub avatar: Option<String>,
     pub discord_id: Option<String>,
     pub stats: Stats,
 }
@@ -58,7 +58,10 @@ pub async fn get_profile(
         "".to_string()
     };
 
-    let avatar = json["pfp"].as_str().unwrap_or("").to_string();
+    let avatar = json["pfp"]
+        .as_str()
+        .filter(|s| !s.is_empty() && *s != "none")
+        .map(|s| s.to_string());
 
     let discord_id = json["discordId"].as_str().map(|s| s.to_string());
 
@@ -95,6 +98,8 @@ pub async fn get_profile(
             None,
         );
     }
+
+    // println!("{:#?}", profile);
 
     Ok((profile, false))
 }

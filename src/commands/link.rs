@@ -45,7 +45,7 @@ pub async fn run(
         match profile.discord_id {
             Some(discord_id) => {
                 let collection = if let Some(collection) =
-                    database.get_collection("onuzglorp-bot", "users").await
+                    database.get_collection("onuzglorp-bot", "linked_tuf").await
                 {
                     collection
                 } else {

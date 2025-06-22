@@ -3,7 +3,6 @@ pub mod cache_info;
 pub mod calc_acc;
 pub mod calc_score;
 pub mod clear;
-pub mod gambling;
 pub mod help;
 pub mod leaderboard;
 pub mod link;
