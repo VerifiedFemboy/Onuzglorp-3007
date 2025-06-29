@@ -87,12 +87,12 @@ impl EventHandler for Handler {
                         .unwrap();
                     None
                 }
-                /* "anilist" => {
-                    commands::anilist::run(&ctx, &command, &self.database, &self.cache_manager)
+                "anilist" => {
+                    commands::anilist::run(&ctx, &command, &self.database)
                         .await
                         .unwrap();
                     None
-                } */
+                }
                 _ => Some("Unknown command".to_string()),
             };
 
@@ -122,7 +122,7 @@ impl EventHandler for Handler {
                 commands::link::register(),
                 commands::setup::register(),
                 commands::cache_info::register(),
-                // commands::anilist::register(),
+                commands::anilist::register(),
             ],
         )
         .await;
@@ -181,12 +181,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 mod tests {
     #[cfg(test)]
     mod anilist_tests {
-        use crate::anilist::anilist_user::get_anilist_user_info;
+        use crate::anilist::anilist_user::get_anilist_by_name;
 
         #[tokio::test]
         async fn test_anilist_request() {
             let username = "VerifiedFemboy"; // Replace with a valid Anilist username
-            get_anilist_user_info(username).await;
+            get_anilist_by_name(username).await;
         }
     }
 }

@@ -46,17 +46,8 @@ pub async fn run_task(ctx: &Context, database: &Database) {
                 .await
                 .expect("Failed to collect documents");
 
-            let level_id = loop {
-                // Loop until we get a valid level ID
-                match request_random_lvl_id().await {
-                    Ok(id) => {
-                        break id;
-                    }
-                    Err(_) => {
-                        error!("Failed to fetch random level ID.");
-                    }
-                };
-            };
+            let level_id = get_random_level_id().await;
+
             let level = match get_level(level_id).await {
                 Ok(level) => level,
                 Err(_) => {
@@ -71,6 +62,7 @@ pub async fn run_task(ctx: &Context, database: &Database) {
             let level_embed = level_embed(level);
             let message = CreateMessage::new().embed(level_embed);
 
+            //TODO: Fix sending more than one message per channel
             for doc in results {
                 let channel_id = doc.get_str("channel_id").unwrap();
                 let channel_id = ChannelId::new(channel_id.parse::<u64>().unwrap());
@@ -81,11 +73,29 @@ pub async fn run_task(ctx: &Context, database: &Database) {
                         if let Err(e) = g_channel.send_message(&ctx.http, message.clone()).await {
                             error!(format!("Failed to send embed: {:?}", e));
                         } else {
-                            info!("The level has been sent!");
+                            info!(format!(
+                                "The level has been sent! Channel ID: {}",
+                                channel_id
+                            ));
                         }
                     }
                 }
             }
         }
     });
+}
+
+async fn get_random_level_id() -> u32 {
+    loop {
+        // Loop until we get a valid level ID
+        match request_random_lvl_id().await {
+            Ok(id) => {
+                info!(format!("Random level ID fetched: {}", id));
+                break id;
+            }
+            Err(_) => {
+                error!("Failed to fetch random level ID.");
+            }
+        };
+    }
 }

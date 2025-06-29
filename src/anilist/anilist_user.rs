@@ -1,3 +1,8 @@
+use serenity::{
+    all::{CommandInteraction, Context, CreateEmbed, EditInteractionResponse},
+    json::Value,
+};
+
 use crate::error;
 
 const QUERY: &str = "query ($name: String) {
@@ -61,20 +66,30 @@ pub struct Avatar {
     pub medium: String,
 }
 
-pub async fn get_anilist_user_info(username: &str) -> Option<AnilistUser> {
-    let client = reqwest::Client::new();
-    let url = "https://graphql.anilist.co";
-
-    let query = QUERY;
+pub async fn get_anilist_by_name(username: &str) -> Option<AnilistUser> {
     let variables = serde_json::json!({
         "name": username,
     });
+
+    return request_for_user(variables).await;
+}
+
+pub async fn get_anilist_by_id(profile_id: i64) -> Option<AnilistUser> {
+    let variables = serde_json::json!({
+        "id": profile_id,
+    });
+    return request_for_user(variables).await;
+}
+
+async fn request_for_user(variables: Value) -> Option<AnilistUser> {
+    let client = reqwest::Client::new();
+    let url = "https://graphql.anilist.co";
 
     let response = client
         .post(url)
         .header("Content-Type", "application/json")
         .json(&serde_json::json!({
-            "query": query,
+            "query": QUERY,
             "variables": variables,
         }))
         .send()
@@ -124,4 +139,16 @@ pub async fn get_anilist_user_info(username: &str) -> Option<AnilistUser> {
             None
         }
     }
+}
+
+pub async fn send_anilist_profile(
+    ctx: &Context,
+    interaction: &CommandInteraction,
+    anilist_data: AnilistUser,
+) {
+    let embed = CreateEmbed::new().thumbnail(anilist_data.avatar.large);
+    interaction
+        .edit_response(ctx, EditInteractionResponse::new().embed(embed))
+        .await
+        .expect("Failed to edit the response");
 }

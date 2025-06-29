@@ -14,13 +14,8 @@ pub async fn run_task(ctx: &Context) {
         ActivityData::listening("the community"),
         ActivityData::watching("TUForums"),
         ActivityData::competing("the leaderboard"),
-        ActivityData::custom("onuz-globulus"),
-        ActivityData::custom("U727"),
-        ActivityData::custom("inferno ex ex"),
-        ActivityData::custom("polska gurom"),
-        ActivityData::custom("when you see it"),
-        ActivityData::custom("heart rate: 727 bpm 🔥"),
-        ActivityData::custom("developed by emi_neko"),
+        ActivityData::custom("Big Thanks to BypassedChicken for hosting! 💕"),
+        ActivityData::custom("developed by emilia_pusheen"),
     ];
 
     spawn(async move {
